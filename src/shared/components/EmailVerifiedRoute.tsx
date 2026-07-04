@@ -1,0 +1,22 @@
+import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useAuth } from '@/features/auth/use-auth';
+import { LoadingState } from './LoadingState';
+
+export function EmailVerifiedRoute() {
+  const { user, isLoading } = useAuth();
+  const location = useLocation();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-svh items-center justify-center">
+        <LoadingState layout="auth" message="Signing you in…" />
+      </div>
+    );
+  }
+
+  if (user && !user.isEmailVerified) {
+    return <Navigate to="/verify-email" replace state={{ from: location }} />;
+  }
+
+  return <Outlet />;
+}
