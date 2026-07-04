@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 168 40" fill="none" role="img" aria-label="Expentra">
+  <defs>
+    <linearGradient id="logo-light-bg" x1="8" y1="6" x2="32" y2="34" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity=".82"/>
+    </linearGradient>
+  </defs>
+  <rect width="40" height="40" rx="10" fill="url(#logo-light-bg)"/>
+  <rect x="10.5" y="8.5" width="19" height="23" rx="3" fill="#1D4ED8" fill-opacity=".12"/>
+  <path d="M27.5 8.5h2.5v3.4L27.5 8.5Z" fill="#fff" fill-opacity=".45"/>
+  <path d="M27.5 8.5 30 11.9h-2.5V8.5Z" fill="#fff" fill-opacity=".28"/>
+  <rect x="13.5" y="13.5" width="11" height="2" rx="1" fill="#fff" fill-opacity=".55"/>
+  <rect x="13.5" y="17.8" width="8" height="2" rx="1" fill="#fff" fill-opacity=".45"/>
+  <path
+    d="M13.5 26.5h3l2.2-3.2 2.8 1.7 4.4-7.2"
+    stroke="#fff"
+    stroke-width="2.2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M25.2 16.5 27.6 14l2.4 2.7"
+    stroke="#6EE7B7"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <text
+    x="52"
+    y="27"
+    fill="#fff"
+    font-family="Inter, system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    font-size="22"
+    font-weight="700"
+    letter-spacing="-0.03em"
+  >
+    Expentra
+  </text>
+</svg>
