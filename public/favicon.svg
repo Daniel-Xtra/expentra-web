@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Expentra">
+  <defs>
+    <linearGradient id="expentra-bg" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5B9BFF"/>
+      <stop offset="1" stop-color="#1D4ED8"/>
+    </linearGradient>
+    <linearGradient id="expentra-shine" x1="8" y1="6" x2="20" y2="18" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".35"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="32" height="32" rx="8" fill="url(#expentra-bg)"/>
+  <rect width="32" height="32" rx="8" fill="url(#expentra-shine)"/>
+  <rect x="8.5" y="7" width="15" height="18" rx="2.5" fill="#fff"/>
+  <path d="M21.5 7h2v2.8L21.5 7Z" fill="#D7E6FF"/>
+  <path d="M21.5 7 23.5 9.8h-2V7Z" fill="#BDD4FF"/>
+  <rect x="10.5" y="11" width="8.5" height="1.6" rx=".8" fill="#A8C4FA"/>
+  <rect x="10.5" y="14.2" width="6.2" height="1.6" rx=".8" fill="#A8C4FA"/>
+  <path
+    d="M10.5 21.2h2.4l1.8-2.6 2.3 1.4 3.6-5.8"
+    stroke="#1D4ED8"
+    stroke-width="1.8"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <path
+    d="M20.2 13.2 22.2 11l2 2.2"
+    stroke="#10B981"
+    stroke-width="1.7"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>

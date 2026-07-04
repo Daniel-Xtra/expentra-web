@@ -1,0 +1,17 @@
+{
+  "name": "Expentra",
+  "short_name": "Expentra",
+  "description": "Expense management for modern teams. Submit claims, track approvals, and stay on budget.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1D4ED8",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
