@@ -4,7 +4,7 @@ import {
   type FieldPath,
   type FieldValues,
 } from 'react-hook-form';
-import { FormField } from '@/shared/components/FormField';
+import AppFormLabel from '@/shared/reusable/AppFormLabel';
 import { OtpInput } from '@/shared/components/OtpInput';
 
 type RhfOtpFieldProps<T extends FieldValues> = {
@@ -34,9 +34,23 @@ export function RhfOtpField<T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field }) =>
-        label ? (
-          <FormField label={label} htmlFor={fieldId} error={error} className={className}>
+      render={({ field }) => (
+        <div className={className}>
+          {label ? (
+            <div className="space-y-3">
+              <AppFormLabel htmlFor={fieldId} className="text-black-400">
+                {label}
+              </AppFormLabel>
+              <OtpInput
+                id={fieldId}
+                value={field.value ?? ''}
+                onChange={field.onChange}
+                length={length}
+                disabled={disabled}
+                aria-invalid={error ? true : undefined}
+              />
+            </div>
+          ) : (
             <OtpInput
               id={fieldId}
               value={field.value ?? ''}
@@ -45,19 +59,10 @@ export function RhfOtpField<T extends FieldValues>({
               disabled={disabled}
               aria-invalid={error ? true : undefined}
             />
-          </FormField>
-        ) : (
-          <OtpInput
-            id={fieldId}
-            value={field.value ?? ''}
-            onChange={field.onChange}
-            length={length}
-            disabled={disabled}
-            aria-invalid={error ? true : undefined}
-            className={className}
-          />
-        )
-      }
+          )}
+          {error ? <p className="mt-2 text-xs text-error-500">{error}</p> : null}
+        </div>
+      )}
     />
   );
 }

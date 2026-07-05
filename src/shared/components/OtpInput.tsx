@@ -124,15 +124,15 @@ export function OtpInput({
       <div
         id={id}
         className={cn(
-          'flex items-center justify-between gap-3 rounded-md border border-input bg-muted/30 px-3 py-2.5',
-          ariaInvalid && 'border-destructive ring-1 ring-destructive/20',
+          'flex h-[52px] items-center justify-between gap-3 rounded-md border border-black-50 bg-neutral-100 px-4',
+          ariaInvalid && 'border-error-500 ring-2 ring-error-500/20',
           className,
         )}
       >
-        <p className="text-sm text-muted-foreground">Code applied from link</p>
+        <p className="text-sm text-black-400">Code applied from link</p>
         <button
           type="button"
-          className="text-xs font-medium text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
+          className="text-xs font-semibold text-primary-500 hover:underline disabled:pointer-events-none disabled:opacity-50"
           disabled={disabled}
           onClick={() => onChange('')}
         >
@@ -168,10 +168,10 @@ export function OtpInput({
           value={digits[index] ?? ''}
           aria-invalid={ariaInvalid}
           className={cn(
-            'size-11 rounded-lg border border-input bg-card text-center text-base font-semibold tracking-widest transition-colors outline-none sm:size-12',
-            'focus-visible:border-primary/40 focus-visible:ring-2 focus-visible:ring-ring/20',
+            'size-[52px] rounded-md border border-black-50 bg-white text-center font-sans text-base font-semibold tracking-widest text-black-500 transition-colors outline-none',
+            'focus-visible:border-primary-500 focus-visible:ring-4 focus-visible:ring-primary/15',
             'disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50',
-            ariaInvalid && 'border-destructive ring-1 ring-destructive/20',
+            ariaInvalid && 'border-error-500 ring-2 ring-error-500/20',
           )}
           onChange={(e) => handleChange(index, e.target.value)}
           onKeyDown={(e) => handleKeyDown(index, e)}

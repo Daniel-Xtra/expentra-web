@@ -25,7 +25,7 @@ import {
   signIn as apiSignIn,
   signOut as apiSignOut,
   signUp as apiSignUp,
-} from './api';
+} from '../api';
 import { canAccess, assertKnownCapabilities } from '@/shared/lib/capabilities';
 import {
   clearPendingUser,
@@ -33,8 +33,8 @@ import {
   isUserEmailVerified,
   loadPendingUser,
   persistPendingUser,
-} from './auth-session';
-import { AuthContext, type AuthState } from './auth-context';
+} from '../auth-session';
+import { AuthContext, type AuthState } from '../auth-context';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<UserResponse | null>(null);

@@ -3,16 +3,17 @@ import { useQuery } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { OtpInput } from '@/shared/components/OtpInput';
 import { LoadingState } from '@/shared/components/LoadingState';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
-import { requestPasswordReset, validatePasswordResetToken } from './api';
+import { requestPasswordReset, validatePasswordResetToken } from '../api';
 import { queryKeys } from '@/shared/api/query-keys';
-import { AuthPageLayout } from './AuthPageLayout';
-import { AuthStepHeader } from './AuthStepHeader';
-import { resetPasswordCodeSchema, type ResetPasswordCodeFormValues } from './schemas';
+import { AuthPrimaryButton, AuthSecondaryButton } from '../components/AuthButtons';
+import { AuthFormShell } from '../components/AuthFormShell';
+import { AuthPageLayout } from '../components/AuthPageLayout';
+import { AuthStatusPanel, AuthStepHeader } from '../components/AuthStepHeader';
+import { resetPasswordCodeSchema, type ResetPasswordCodeFormValues } from '../schemas';
 
 const OTP_LENGTH = 6;
 
@@ -32,24 +33,18 @@ export function VerifyOtpPage() {
   const email = (location.state as { email?: string } | null)?.email?.trim() ?? '';
   const [isResending, setIsResending] = useState(false);
 
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    watch,
-    formState: { errors, isSubmitting },
-  } = useForm<ResetPasswordCodeFormValues>({
+  const form = useForm<ResetPasswordCodeFormValues>({
     resolver: zodResolver(resetPasswordCodeSchema),
     defaultValues: { token: tokenFromUrl },
   });
-
-  const token = watch('token') ?? '';
+  const { errors, isSubmitting } = form.formState;
+  const token = form.watch('token') ?? '';
 
   useEffect(() => {
     if (tokenFromUrl) {
-      setValue('token', tokenFromUrl);
+      form.setValue('token', tokenFromUrl);
     }
-  }, [tokenFromUrl, setValue]);
+  }, [tokenFromUrl, form]);
 
   const tokenQuery = useQuery({
     queryKey: queryKeys.auth.passwordResetValidate(tokenFromUrl),
@@ -64,7 +59,7 @@ export function VerifyOtpPage() {
     }
   }, [tokenQuery.isSuccess, tokenFromUrl, navigate]);
 
-  const onSubmit = handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async (values) => {
     try {
       await validatePasswordResetToken(values.token);
       navigate(resetPasswordNewPath(values.token));
@@ -100,23 +95,21 @@ export function VerifyOtpPage() {
 
   if (tokenFromUrl && tokenQuery.isError) {
     return (
-      <AuthPageLayout footerLink={{ prompt: 'Remembered Password?', label: 'Sign In', to: '/login' }}>
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/50 bg-muted/20">
-            <CardTitle className="text-lg">Link expired or invalid</CardTitle>
-            <CardDescription>
-              This reset link is no longer valid. Enter a new code or request another reset email.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3 pt-6">
-            <Button asChild className="w-full" size="lg">
-              <Link to="/forgot-password">Request a new code</Link>
-            </Button>
-            <Button asChild variant="outline" className="w-full" size="lg">
-              <Link to="/verify-otp">Enter code manually</Link>
-            </Button>
-          </CardContent>
-        </Card>
+      <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/login' }}>
+        <AuthStatusPanel
+          title="Link expired or invalid"
+          description="This reset link is no longer valid. Enter a new code or request another reset email."
+          actions={
+            <>
+              <AuthPrimaryButton asChild>
+                <Link to="/forgot-password">Request a new code</Link>
+              </AuthPrimaryButton>
+              <AuthSecondaryButton asChild>
+                <Link to="/verify-otp">Enter code manually</Link>
+              </AuthSecondaryButton>
+            </>
+          }
+        />
       </AuthPageLayout>
     );
   }
@@ -124,25 +117,25 @@ export function VerifyOtpPage() {
   const canContinue = isOtpComplete(token);
 
   return (
-    <AuthPageLayout footerLink={{ prompt: 'Remembered Password?', label: 'Sign In', to: '/login' }}>
-      <div className="w-full space-y-6">
-        <AuthStepHeader step={2} total={3} backTo="/forgot-password" />
-
-        <div className="space-y-1.5">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Enter Verification Code
-          </h1>
-          <p className="text-sm text-muted-foreground">
-            {email
-              ? `An OTP has been sent to ${email}`
-              : 'An OTP has been sent to your email address'}
-          </p>
-        </div>
-
-        <form onSubmit={onSubmit} noValidate className="space-y-6">
+    <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/login' }}>
+      <AuthFormShell
+        header={<AuthStepHeader step={2} total={3} backTo="/forgot-password" />}
+        title="Enter verification code"
+        description={
+          email
+            ? `An OTP has been sent to ${email}`
+            : 'An OTP has been sent to your email address'
+        }
+        submitLabel="Continue"
+        loadingLabel="Verifying…"
+        isSubmitting={isSubmitting}
+        submitDisabled={!canContinue}
+        onSubmit={onSubmit}
+      >
+        <Form {...form}>
           <div className="space-y-4">
             <Controller
-              control={control}
+              control={form.control}
               name="token"
               render={({ field }) => (
                 <OtpInput
@@ -156,29 +149,20 @@ export function VerifyOtpPage() {
                 />
               )}
             />
-            {errors.token?.message && (
-              <p className="text-xs text-destructive">{errors.token.message}</p>
-            )}
+            {errors.token?.message ? (
+              <p className="text-xs text-error-500">{errors.token.message}</p>
+            ) : null}
             <button
               type="button"
-              className="text-sm font-medium text-primary hover:underline disabled:pointer-events-none disabled:opacity-50"
+              className="text-sm font-semibold text-primary-500 hover:underline disabled:pointer-events-none disabled:opacity-50"
               disabled={isResending}
               onClick={() => void handleResend()}
             >
               {isResending ? 'Sending…' : 'Resend code'}
             </button>
           </div>
-
-          <Button
-            type="submit"
-            className="w-full"
-            size="lg"
-            disabled={!canContinue || isSubmitting}
-          >
-            {isSubmitting ? 'Verifying…' : 'Continue'}
-          </Button>
-        </form>
-      </div>
+        </Form>
+      </AuthFormShell>
     </AuthPageLayout>
   );
 }

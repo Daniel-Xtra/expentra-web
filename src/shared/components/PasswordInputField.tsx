@@ -4,10 +4,11 @@ import {
   type FieldValues,
   type UseFormRegister,
 } from 'react-hook-form';
-import shieldCheckIconUrl from '@/assets/shield-check.png';
-import shieldCheckErrorIconUrl from '@/assets/shield-check-error.png';
+import shieldCheckIconUrl from '@/assets/icons/shield-check.png';
+import shieldCheckErrorIconUrl from '@/assets/icons/shield-check-error.png';
 import { cn } from '@/lib/utils';
 import { AssetIcon } from '@/shared/components/AssetIcon';
+import { passwordCriteria } from '@/shared/lib/password-policy';
 
 type PasswordInputFieldProps<T extends FieldValues> = {
   register: UseFormRegister<T>;
@@ -20,23 +21,6 @@ type PasswordInputFieldProps<T extends FieldValues> = {
   showCriteria?: boolean;
 } & Omit<ComponentProps<'input'>, 'id' | 'name' | 'type'>;
 
-type PasswordCriterion = {
-  label: string;
-  isMet: boolean;
-};
-
-function passwordCriteria(value: string): PasswordCriterion[] {
-  return [
-    { label: '8 character', isMet: value.length >= 8 },
-    { label: 'Numbers', isMet: /\d/.test(value) },
-    {
-      label: 'One special character',
-      isMet: /[!@#$%^&*(),.?":{}|<>]/.test(value),
-    },
-    { label: 'One uppercase', isMet: /[A-Z]/.test(value) },
-  ];
-}
-
 function PasswordCriteria({ value }: { value: string }) {
   return (
     <div className="grid w-full grid-cols-2 gap-x-8 gap-y-2">
@@ -45,7 +29,7 @@ function PasswordCriteria({ value }: { value: string }) {
           key={criterion.label}
           className={cn(
             'flex min-w-0 items-center gap-1.5 text-xs font-normal leading-none',
-            criterion.isMet ? 'text-emerald-600' : 'text-[#d96b6b]',
+            criterion.isMet ? 'text-success-800' : 'text-error-500',
           )}
         >
           <AssetIcon

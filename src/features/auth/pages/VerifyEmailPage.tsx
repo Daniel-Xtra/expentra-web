@@ -2,21 +2,22 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form } from '@/components/ui/form';
 import { RhfOtpField } from '@/shared/components/RhfOtpField';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
-import { AuthFormCard } from './AuthFormCard';
-import { AuthPageLayout } from './AuthPageLayout';
+import { AuthFormShell } from '../components/AuthFormShell';
+import { AuthPageLayout } from '../components/AuthPageLayout';
+import { AuthPrimaryButton, AuthSecondaryButton } from '../components/AuthButtons';
+import { AuthStatusPanel } from '../components/AuthStepHeader';
 import {
   clearVerificationResendInFlight,
   isUserEmailVerified,
   markVerificationResendInFlight,
   recordVerificationResendAttempt,
   shouldAutoResendVerification,
-} from './auth-session';
-import { verifyEmailSchema, type VerifyEmailFormValues } from './schemas';
-import { useAuth } from './use-auth';
+} from '../auth-session';
+import { verifyEmailSchema, type VerifyEmailFormValues } from '../schemas';
+import { useAuth } from '../hooks/use-auth';
 
 export function VerifyEmailPage() {
   const navigate = useNavigate();
@@ -24,21 +25,18 @@ export function VerifyEmailPage() {
   const tokenFromUrl = searchParams.get('token')?.trim() ?? '';
   const { user, confirmEmailVerification, resendEmailVerification, signOut } = useAuth();
   const autoResendStarted = useRef(false);
-  const {
-    control,
-    handleSubmit,
-    setValue,
-    formState: { errors, isSubmitting },
-  } = useForm<VerifyEmailFormValues>({
+
+  const form = useForm<VerifyEmailFormValues>({
     resolver: zodResolver(verifyEmailSchema),
     defaultValues: { token: tokenFromUrl },
   });
+  const { errors, isSubmitting } = form.formState;
 
   useEffect(() => {
     if (tokenFromUrl) {
-      setValue('token', tokenFromUrl);
+      form.setValue('token', tokenFromUrl);
     }
-  }, [tokenFromUrl, setValue]);
+  }, [tokenFromUrl, form]);
 
   useEffect(() => {
     if (autoResendStarted.current || !user || isUserEmailVerified(user)) {
@@ -53,7 +51,7 @@ export function VerifyEmailPage() {
 
     void (async () => {
       if (tokenFromUrl) {
-        setValue('token', '');
+        form.setValue('token', '');
         navigate('/verify-email', { replace: true });
       }
 
@@ -68,9 +66,9 @@ export function VerifyEmailPage() {
         clearVerificationResendInFlight();
       }
     })();
-  }, [user, resendEmailVerification, tokenFromUrl, navigate, setValue]);
+  }, [user, resendEmailVerification, tokenFromUrl, navigate, form]);
 
-  const onSubmit = handleSubmit(async (values) => {
+  const onSubmit = form.handleSubmit(async (values) => {
     try {
       const message = await confirmEmailVerification(values.token);
       toastSuccess(message);
@@ -89,7 +87,7 @@ export function VerifyEmailPage() {
     try {
       const message = await resendEmailVerification();
       recordVerificationResendAttempt();
-      setValue('token', '');
+      form.setValue('token', '');
       toastSuccess(message || 'A new verification code has been sent to your email.');
     } catch (err) {
       toastError(err, 'Failed to resend verification email');
@@ -99,17 +97,15 @@ export function VerifyEmailPage() {
   if (isUserEmailVerified(user)) {
     return (
       <AuthPageLayout footerLink={{ prompt: 'Back to', label: 'Dashboard', to: '/' }}>
-        <Card className="border-border/60">
-          <CardHeader className="border-b border-border/50 bg-muted/20">
-            <CardTitle className="text-lg">Email verified</CardTitle>
-            <CardDescription>Your email address is already verified.</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <Button asChild className="w-full" size="lg">
+        <AuthStatusPanel
+          title="Email verified"
+          description="Your email address is already verified."
+          actions={
+            <AuthPrimaryButton asChild>
               <Link to="/">Go to dashboard</Link>
-            </Button>
-          </CardContent>
-        </Card>
+            </AuthPrimaryButton>
+          }
+        />
       </AuthPageLayout>
     );
   }
@@ -122,7 +118,7 @@ export function VerifyEmailPage() {
         onClick: () => void signOut(),
       }}
     >
-      <AuthFormCard
+      <AuthFormShell
         title="Verify your email"
         description={
           user?.email
@@ -134,17 +130,15 @@ export function VerifyEmailPage() {
         isSubmitting={isSubmitting}
         onSubmit={onSubmit}
         actions={
-          <Button type="button" variant="outline" className="w-full" onClick={() => void handleResend()}>
+          <AuthSecondaryButton onClick={() => void handleResend()}>
             Resend verification email
-          </Button>
+          </AuthSecondaryButton>
         }
       >
-        <RhfOtpField
-          control={control}
-          name="token"
-          error={errors.token?.message}
-        />
-      </AuthFormCard>
+        <Form {...form}>
+          <RhfOtpField control={form.control} name="token" error={errors.token?.message} />
+        </Form>
+      </AuthFormShell>
     </AuthPageLayout>
   );
 }
