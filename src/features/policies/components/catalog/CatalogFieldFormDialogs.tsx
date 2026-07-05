@@ -1,23 +1,70 @@
+import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import type {
-  Control,
-  FieldErrors,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
 import { CatalogFieldFormFields } from '@/features/policies/components/catalog/CatalogFieldFormFields';
+import { CatalogTemplateFormFields } from '@/features/policies/components/catalog/CatalogTemplateFormFields';
 import type { CatalogFieldFormState } from '@/features/policies/components/catalog/CatalogFieldFormParts';
-import { PolicyConditionBuilder } from '@/features/policies/PolicyConditionBuilder';
-import type {
-  PolicyConditionFormShape,
-  TemplateFormValues,
-} from '@/features/policies/policy-config';
-import { FormDialog } from '@/shared/components/FormDialog';
-import { FormField } from '@/shared/components/FormField';
+import type { TemplateFormValues } from '@/features/policies/policy-config';
+import { AppModal } from '@/shared/reusable/AppModal';
 import type { PolicyCatalogField, PolicyCatalogResponse } from '@/types/api';
+
+type CatalogDialogShellProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description?: string;
+  submitLabel: string;
+  loading: boolean;
+  onSubmit: () => void | Promise<void>;
+  className?: string;
+  children: ReactNode;
+};
+
+function CatalogDialogShell({
+  open,
+  onOpenChange,
+  title,
+  description,
+  submitLabel,
+  loading,
+  onSubmit,
+  className = 'sm:max-w-lg',
+  children,
+}: CatalogDialogShellProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <AppModal
+        title={title}
+        description={description}
+        className={className}
+        primaryFn={() => {}}
+        content={children}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
+              disabled={loading}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
+              disabled={loading}
+              onClick={onSubmit}
+            >
+              {loading ? 'Saving…' : submitLabel}
+            </Button>
+          </>
+        }
+      />
+    </Dialog>
+  );
+}
 
 type CatalogCreateFieldDialogProps = {
   open: boolean;
@@ -45,14 +92,13 @@ export function CatalogCreateFieldDialog({
   onSubmit,
 }: CatalogCreateFieldDialogProps) {
   return (
-    <FormDialog
-      title="Add condition field"
-      description="Choose an engine-supported field and configure how it appears in the policy builder."
+    <CatalogDialogShell
       open={open}
       onOpenChange={onOpenChange}
+      title="Add condition field"
+      description="Choose an engine-supported field and configure how it appears in the policy builder."
       submitLabel="Create field"
       loading={loading}
-      contentClassName="max-h-[70vh] overflow-y-auto"
       onSubmit={onSubmit}
     >
       {field && definition ? (
@@ -66,7 +112,7 @@ export function CatalogCreateFieldDialog({
           onSelectDefinition={onSelectDefinition}
         />
       ) : null}
-    </FormDialog>
+    </CatalogDialogShell>
   );
 }
 
@@ -92,13 +138,12 @@ export function CatalogEditFieldDialog({
   onSubmit,
 }: CatalogEditFieldDialogProps) {
   return (
-    <FormDialog
-      title="Edit condition field"
+    <CatalogDialogShell
       open={open}
       onOpenChange={onOpenChange}
+      title="Edit condition field"
       submitLabel="Save field"
       loading={loading}
-      contentClassName="max-h-[70vh] overflow-y-auto"
       onSubmit={onSubmit}
     >
       {field && definition ? (
@@ -110,7 +155,7 @@ export function CatalogEditFieldDialog({
           onChange={(updated) => onChange({ ...updated, reference: field.reference })}
         />
       ) : null}
-    </FormDialog>
+    </CatalogDialogShell>
   );
 }
 
@@ -132,51 +177,17 @@ export function CatalogCreateTemplateDialog({
   onSubmit,
 }: CatalogCreateTemplateDialogProps) {
   return (
-    <FormDialog
-      title="Add template"
-      description="Templates appear as quick-start options when creating a new policy."
+    <CatalogDialogShell
       open={open}
       onOpenChange={onOpenChange}
+      title="Add template"
+      description="Templates appear as quick-start options when creating a new policy."
       submitLabel="Create template"
       loading={loading}
-      className="max-w-3xl"
-      contentClassName="max-h-[70vh] overflow-y-auto"
       onSubmit={onSubmit}
+      className="sm:max-w-3xl"
     >
-      <div className="space-y-6">
-        <FormField
-          label="Template name"
-          htmlFor="template-name"
-          error={templateForm.formState.errors.name?.message}
-        >
-          <Input
-            id="template-name"
-            placeholder="e.g. Receipt required above ₦5,000"
-            {...templateForm.register('name')}
-          />
-        </FormField>
-        <FormField
-          label="Description"
-          htmlFor="template-description"
-          error={templateForm.formState.errors.description?.message}
-        >
-          <Textarea
-            id="template-description"
-            rows={2}
-            placeholder="Short explanation shown in the template picker."
-            {...templateForm.register('description')}
-          />
-        </FormField>
-        <PolicyConditionBuilder
-          catalog={catalog}
-          control={templateForm.control as unknown as Control<PolicyConditionFormShape>}
-          errors={templateForm.formState.errors as unknown as FieldErrors<PolicyConditionFormShape>}
-          watch={templateForm.watch as unknown as UseFormWatch<PolicyConditionFormShape>}
-          setValue={templateForm.setValue as unknown as UseFormSetValue<PolicyConditionFormShape>}
-          register={templateForm.register as unknown as UseFormRegister<PolicyConditionFormShape>}
-          showTemplates={false}
-        />
-      </div>
-    </FormDialog>
+      <CatalogTemplateFormFields form={templateForm} catalog={catalog} />
+    </CatalogDialogShell>
   );
 }

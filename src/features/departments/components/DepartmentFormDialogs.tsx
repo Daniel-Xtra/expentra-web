@@ -2,15 +2,13 @@ import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Dialog } from '@/components/ui/dialog';
-import { ApprovalLevelFormFields } from '@/features/approval-levels/components/ApprovalLevelFormFields';
-import type {
-  ApprovalLevelFormValues,
-  EditApprovalLevelFormValues,
-} from '@/features/approval-levels/schemas';
+import { DepartmentFormFields } from '@/features/departments/components/DepartmentFormFields';
+import type { DepartmentFormValues } from '@/features/departments/department-form';
 import { AppModal } from '@/shared/reusable/AppModal';
-import type { ApprovalLevelResponse, RoleResponse } from '@/types/api';
+import { formatLabel } from '@/shared/utils/format';
+import type { DepartmentResponse } from '@/types/api';
 
-type ApprovalLevelDialogShellProps = {
+type DepartmentDialogShellProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -21,7 +19,7 @@ type ApprovalLevelDialogShellProps = {
   children: ReactNode;
 };
 
-function ApprovalLevelDialogShell({
+function DepartmentDialogShell({
   open,
   onOpenChange,
   title,
@@ -30,7 +28,7 @@ function ApprovalLevelDialogShell({
   loading,
   onSubmit,
   children,
-}: ApprovalLevelDialogShellProps) {
+}: DepartmentDialogShellProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <AppModal
@@ -65,88 +63,77 @@ function ApprovalLevelDialogShell({
   );
 }
 
-type CreateApprovalLevelDialogProps = {
+type CreateDepartmentDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: UseFormReturn<ApprovalLevelFormValues>;
-  roles: RoleResponse[];
+  form: UseFormReturn<DepartmentFormValues>;
   loading: boolean;
   onSubmit: () => void;
 };
 
-export function CreateApprovalLevelDialog({
+export function CreateDepartmentDialog({
   open,
   onOpenChange,
   form,
-  roles,
   loading,
   onSubmit,
-}: CreateApprovalLevelDialogProps) {
+}: CreateDepartmentDialogProps) {
   return (
-    <ApprovalLevelDialogShell
+    <DepartmentDialogShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Add approval level"
-      description="Define a step in the expense approval chain."
-      submitLabel="Create level"
+      title="Add department"
+      description="Create a new department with a name and code."
+      submitLabel="Create department"
       loading={loading}
       onSubmit={onSubmit}
     >
-      <ApprovalLevelFormFields
-        form={form}
-        mode="create"
-        roles={roles}
-        nameId="level-name"
-        descriptionId="level-description"
-        levelId="level-order"
-      />
-    </ApprovalLevelDialogShell>
+      <DepartmentFormFields form={form} nameId="department-name" codeId="department-code" />
+    </DepartmentDialogShell>
   );
 }
 
-type EditApprovalLevelDialogProps = {
-  level: ApprovalLevelResponse | null;
+type EditDepartmentDialogProps = {
+  department: DepartmentResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  form: UseFormReturn<EditApprovalLevelFormValues>;
-  roles: RoleResponse[];
+  form: UseFormReturn<DepartmentFormValues>;
   loading: boolean;
   onSubmit: () => void;
 };
 
-export function EditApprovalLevelDialog({
-  level,
+export function EditDepartmentDialog({
+  department,
   open,
   onOpenChange,
   form,
-  roles,
   loading,
   onSubmit,
-}: EditApprovalLevelDialogProps) {
+}: EditDepartmentDialogProps) {
   return (
-    <ApprovalLevelDialogShell
+    <DepartmentDialogShell
       open={open}
       onOpenChange={onOpenChange}
-      title="Edit approval level"
+      title="Edit department"
       description={
-        level
-          ? `Update ${level.name} (level ${level.level}).`
-          : 'Update the approval level details.'
+        department
+          ? `Update details for ${formatLabel(department.name)}.`
+          : 'Update the department name, code, and manager.'
       }
       submitLabel="Save changes"
       loading={loading}
       onSubmit={onSubmit}
     >
-      {level ? (
-        <ApprovalLevelFormFields
+      {department ? (
+        <DepartmentFormFields
           form={form}
-          mode="edit"
-          roles={roles}
-          nameId="edit-level-name"
-          descriptionId="edit-level-description"
-          levelId="edit-level-order"
+          nameId="edit-department-name"
+          codeId="edit-department-code"
+          departmentReference={department.reference}
+          currentManager={department.manager}
+          pendingApprovalCount={department.pendingApprovalCount}
         />
       ) : null}
-    </ApprovalLevelDialogShell>
+    </DepartmentDialogShell>
   );
 }

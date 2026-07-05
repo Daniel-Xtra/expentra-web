@@ -1,10 +1,70 @@
+import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import { FormDialog } from '@/shared/components/FormDialog';
-import { FormField } from '@/shared/components/FormField';
-import { RhfSelectField } from '@/shared/components/RhfSelectField';
+import { Button } from '@/components/ui/button';
+import { Dialog } from '@/components/ui/dialog';
+import {
+  CreateBudgetFormFields,
+  EditBudgetFormFields,
+} from '@/features/budgets/components/BudgetFormFields';
 import type { BudgetFormValues, EditBudgetFormValues } from '@/features/budgets/schemas';
-import type { DepartmentResponse } from '@/types/api';
+import { AppModal } from '@/shared/reusable/AppModal';
+import { formatLabel } from '@/shared/utils/format';
+import type { BudgetResponse, DepartmentResponse } from '@/types/api';
+
+type BudgetDialogShellProps = {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  title: string;
+  description: string;
+  submitLabel: string;
+  loading: boolean;
+  onSubmit: () => void;
+  children: ReactNode;
+};
+
+function BudgetDialogShell({
+  open,
+  onOpenChange,
+  title,
+  description,
+  submitLabel,
+  loading,
+  onSubmit,
+  children,
+}: BudgetDialogShellProps) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <AppModal
+        title={title}
+        description={description}
+        className="sm:max-w-lg"
+        primaryFn={() => {}}
+        content={children}
+        actions={
+          <>
+            <Button
+              type="button"
+              variant="ghost"
+              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
+              disabled={loading}
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
+              disabled={loading}
+              onClick={onSubmit}
+            >
+              {loading ? 'Saving…' : submitLabel}
+            </Button>
+          </>
+        }
+      />
+    </Dialog>
+  );
+}
 
 type CreateBudgetDialogProps = {
   open: boolean;
@@ -23,57 +83,23 @@ export function CreateBudgetDialog({
   onSubmit,
   departments,
 }: CreateBudgetDialogProps) {
-  const { register, control, formState: { errors } } = form;
-
   return (
-    <FormDialog
-      title="Add budget"
+    <BudgetDialogShell
       open={open}
       onOpenChange={onOpenChange}
+      title="Add budget"
+      description="Set a spending limit for a department and year."
       submitLabel="Create budget"
       loading={loading}
       onSubmit={onSubmit}
     >
-      <div className="grid grid-cols-2 gap-4">
-        <RhfSelectField
-          control={control}
-          name="departmentReference"
-          label="Department"
-          placeholder="Select department"
-          error={errors.departmentReference?.message}
-          className="col-span-2"
-          options={departments.map((dept) => ({
-            value: dept.reference,
-            label: dept.name,
-          }))}
-        />
-        <FormField label="Year" htmlFor="budget-year" error={errors.year?.message} className="col-span-1">
-          <Input
-            id="budget-year"
-            type="number"
-            aria-invalid={errors.year ? true : undefined}
-            {...register('year', { valueAsNumber: true })}
-          />
-        </FormField>
-        <FormField
-          label="Limit (₦)"
-          htmlFor="budget-amount"
-          error={errors.amountNaira?.message}
-          className="col-span-1"
-        >
-          <Input
-            id="budget-amount"
-            inputMode="decimal"
-            aria-invalid={errors.amountNaira ? true : undefined}
-            {...register('amountNaira')}
-          />
-        </FormField>
-      </div>
-    </FormDialog>
+      <CreateBudgetFormFields form={form} departments={departments} />
+    </BudgetDialogShell>
   );
 }
 
 type EditBudgetDialogProps = {
+  budget: BudgetResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<EditBudgetFormValues>;
@@ -82,46 +108,32 @@ type EditBudgetDialogProps = {
 };
 
 export function EditBudgetDialog({
+  budget,
   open,
   onOpenChange,
   form,
   loading,
   onSubmit,
 }: EditBudgetDialogProps) {
+  const departmentLabel = budget?.department?.name
+    ? formatLabel(budget.department.name)
+    : 'this department';
+
   return (
-    <FormDialog
-      title="Edit budget"
+    <BudgetDialogShell
       open={open}
       onOpenChange={onOpenChange}
+      title="Edit budget"
+      description={
+        budget
+          ? `Update the limit and status for ${departmentLabel} (${budget.year}).`
+          : 'Update the budget limit and status.'
+      }
       submitLabel="Save changes"
       loading={loading}
       onSubmit={onSubmit}
     >
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <FormField
-          label="Limit (₦)"
-          htmlFor="edit-budget-amount"
-          error={form.formState.errors.amountNaira?.message}
-          className="sm:col-span-2"
-        >
-          <Input
-            id="edit-budget-amount"
-            inputMode="decimal"
-            {...form.register('amountNaira')}
-          />
-        </FormField>
-        <RhfSelectField
-          control={form.control}
-          name="isActive"
-          label="Status"
-          options={[
-            { value: 'active', label: 'Active' },
-            { value: 'inactive', label: 'Inactive' },
-          ]}
-          error={form.formState.errors.isActive?.message}
-          className="sm:col-span-2"
-        />
-      </div>
-    </FormDialog>
+      {budget ? <EditBudgetFormFields form={form} /> : null}
+    </BudgetDialogShell>
   );
 }

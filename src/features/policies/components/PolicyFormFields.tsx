@@ -1,155 +1,178 @@
-import type {
-  Control,
-  FieldError,
-  FieldErrors,
-  UseFormRegister,
-  UseFormSetValue,
-  UseFormWatch,
-} from 'react-hook-form';
-import { Controller } from 'react-hook-form';
-import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
+import { Controller, type UseFormReturn } from 'react-hook-form';
+import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { FormField } from '@/shared/components/FormField';
+import AppFormInput from '@/shared/reusable/AppFormInput';
+import AppFormLabel from '@/shared/reusable/AppFormLabel';
+import AppSelect from '@/shared/reusable/AppSelect';
+import AppTextarea from '@/shared/reusable/AppTextarea';
 import type { PolicyCatalogResponse } from '@/types/api';
-import type { PolicyConditionFormShape, EditPolicyFormValues, PolicyFormValues } from '../policy-config';
-import { PolicyConditionBuilder } from '../PolicyConditionBuilder';
+import type { EditPolicyFormValues, PolicyFormValues } from '../policy-config';
+import { PolicyConditionBuilder } from './PolicyConditionBuilder';
 
-function fieldErrorMessage(error: FieldError | undefined): string | undefined {
-  return error?.message;
-}
-
-type PolicyFormHookProps =
-  | {
-      register: UseFormRegister<PolicyFormValues>;
-      control: Control<PolicyFormValues>;
-      errors: FieldErrors<PolicyFormValues>;
-      watch: UseFormWatch<PolicyFormValues>;
-      setValue: UseFormSetValue<PolicyFormValues>;
-    }
-  | {
-      register: UseFormRegister<EditPolicyFormValues>;
-      control: Control<EditPolicyFormValues>;
-      errors: FieldErrors<EditPolicyFormValues>;
-      watch: UseFormWatch<EditPolicyFormValues>;
-      setValue: UseFormSetValue<EditPolicyFormValues>;
-    };
-
-type PolicyFormFieldsProps = PolicyFormHookProps & {
+type PolicyFormFieldsProps = {
+  form: UseFormReturn<PolicyFormValues | EditPolicyFormValues>;
   catalog: PolicyCatalogResponse;
   showTemplates?: boolean;
+  showStatus?: boolean;
 };
 
 export function PolicyFormFields({
+  form,
   catalog,
-  register: registerProp,
-  control: controlProp,
-  errors: errorsProp,
-  watch: watchProp,
-  setValue: setValueProp,
   showTemplates = true,
+  showStatus = false,
 }: PolicyFormFieldsProps) {
-  const register = registerProp as UseFormRegister<PolicyFormValues>;
-  const control = controlProp as Control<PolicyFormValues>;
-  const errors = errorsProp as FieldErrors<PolicyFormValues>;
-  const watch = watchProp as UseFormWatch<PolicyFormValues>;
-  const setValue = setValueProp as UseFormSetValue<PolicyFormValues>;
   const hasCatalogFields = catalog.fields.length > 0;
 
-  const conditionControl = control as unknown as Control<PolicyConditionFormShape>;
-  const conditionErrors = errors as unknown as FieldErrors<PolicyConditionFormShape>;
-  const conditionWatch = watch as unknown as UseFormWatch<PolicyConditionFormShape>;
-  const conditionSetValue = setValue as unknown as UseFormSetValue<PolicyConditionFormShape>;
-  const conditionRegister = register as unknown as UseFormRegister<PolicyConditionFormShape>;
+  const severityOptions = [
+    {
+      value: 'WARN',
+      label: 'Warning — employee can justify and still submit',
+    },
+    {
+      value: 'BLOCK',
+      label: 'Block — employee cannot submit until resolved',
+    },
+  ];
+
+  const statusOptions = [
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+  ];
 
   return (
-    <div className="space-y-6">
-      <section className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">Policy details</h3>
-          <p className="text-xs text-muted-foreground">
-            Name the rule and choose how employees experience violations.
-          </p>
-        </div>
+    <Form {...form}>
+      <div className="space-y-6 font-sans">
+        <section className="space-y-4">
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-950">Policy details</h3>
+            <p className="text-xs/[16.8px] text-black-400">
+              Name the rule and choose how employees experience violations.
+            </p>
+          </div>
 
-        <FormField label="Policy name" htmlFor="policy-name" error={fieldErrorMessage(errors.name)}>
-          <Input
-            id="policy-name"
-            placeholder="e.g. Receipt required above ₦5,000"
-            aria-invalid={errors.name ? true : undefined}
-            {...register('name')}
-          />
-        </FormField>
+          <div className="space-y-3">
+            <AppFormLabel htmlFor="policy-name" className="text-black-400">
+              Policy name
+            </AppFormLabel>
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field, fieldState }) => (
+                <FormItem>
+                  <AppFormInput
+                    id="policy-name"
+                    placeholder="e.g. Receipt required above ₦5,000"
+                    {...field}
+                    aria-invalid={fieldState.invalid ? true : undefined}
+                    className={cn(
+                      fieldState.error &&
+                        'border-error-500! focus-visible:border-error-500!',
+                    )}
+                  />
+                  <FormMessage className="text-xs text-error-500" />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <FormField label="Severity" error={fieldErrorMessage(errors.severity)}>
-          <Controller
-            name="severity"
-            control={control}
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger aria-invalid={errors.severity ? true : undefined}>
-                  <SelectValue placeholder="Select severity" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="WARN">
-                    Warning — employee can justify and still submit
-                  </SelectItem>
-                  <SelectItem value="BLOCK">
-                    Block — employee cannot submit until resolved
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          />
-        </FormField>
+          <div className="space-y-3">
+            <AppFormLabel className="text-black-400">Severity</AppFormLabel>
+            <Controller
+              control={form.control}
+              name="severity"
+              render={({ field, fieldState }) => (
+                <>
+                  <AppSelect
+                    placeholder="Select severity"
+                    options={severityOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={Boolean(fieldState.error)}
+                  />
+                  {fieldState.error ? (
+                    <p className="text-xs text-error-500">{fieldState.error.message}</p>
+                  ) : null}
+                </>
+              )}
+            />
+          </div>
 
-        <FormField
-          label="Employee message (optional)"
-          htmlFor="policy-custom-message"
-          error={fieldErrorMessage(errors.customMessage)}
-        >
-          <Textarea
-            id="policy-custom-message"
-            rows={2}
-            placeholder="Explain what the employee should do when this policy is triggered."
-            aria-invalid={errors.customMessage ? true : undefined}
-            {...register('customMessage')}
-          />
-        </FormField>
-      </section>
+          <div className="space-y-3">
+            <AppFormLabel htmlFor="policy-custom-message" className="text-black-400">
+              Employee message (optional)
+            </AppFormLabel>
+            <Controller
+              control={form.control}
+              name="customMessage"
+              render={({ field, fieldState }) => (
+                <>
+                  <AppTextarea
+                    placeholder="Explain what the employee should do when this policy is triggered."
+                    value={field.value ?? ''}
+                    onChange={field.onChange}
+                    showHint={false}
+                    className={cn(
+                      fieldState.error &&
+                        'border-error-500! focus-visible:border-error-500!',
+                    )}
+                  />
+                  {fieldState.error ? (
+                    <p className="text-xs text-error-500">{fieldState.error.message}</p>
+                  ) : null}
+                </>
+              )}
+            />
+          </div>
+        </section>
 
-      <section className="space-y-4 border-t border-border/50 pt-6">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground">Rule conditions</h3>
-          <p className="text-xs text-muted-foreground">
-            Define when this policy applies. All policies use the same condition engine.
-          </p>
-        </div>
+        <section className="space-y-4 border-t border-black-50 pt-6">
+          <div>
+            <h3 className="text-sm font-semibold text-neutral-950">Rule conditions</h3>
+            <p className="text-xs/[16.8px] text-black-400">
+              Define when this policy applies. All policies use the same condition engine.
+            </p>
+          </div>
 
-        {!hasCatalogFields ? (
-          <EmptyState
-            title="No condition fields configured"
-            description="Add condition fields under Rule catalog before creating policy rules."
-          />
-        ) : (
-          <PolicyConditionBuilder
-            catalog={catalog}
-            control={conditionControl}
-            errors={conditionErrors}
-            watch={conditionWatch}
-            setValue={conditionSetValue}
-            register={conditionRegister}
-            showTemplates={showTemplates}
-          />
-        )}
-      </section>
-    </div>
+          {!hasCatalogFields ? (
+            <EmptyState
+              title="No condition fields configured"
+              description="Add condition fields under Rule catalog before creating policy rules."
+            />
+          ) : (
+            <PolicyConditionBuilder
+              catalog={catalog}
+              form={form}
+              showTemplates={showTemplates}
+            />
+          )}
+        </section>
+
+        {showStatus ? (
+          <section className="space-y-3 border-t border-black-50 pt-6">
+            <AppFormLabel className="text-black-400">Status</AppFormLabel>
+            <Controller
+              control={form.control}
+              name="isActive"
+              render={({ field, fieldState }) => (
+                <>
+                  <AppSelect
+                    placeholder="Select status"
+                    options={statusOptions}
+                    value={field.value}
+                    onChange={field.onChange}
+                    error={Boolean(fieldState.error)}
+                  />
+                  {fieldState.error ? (
+                    <p className="text-xs text-error-500">{fieldState.error.message}</p>
+                  ) : null}
+                </>
+              )}
+            />
+          </section>
+        ) : null}
+      </div>
+    </Form>
   );
 }

@@ -1,5 +1,7 @@
-import { Input } from '@/components/ui/input';
-import { FormField } from '@/shared/components/FormField';
+import { cn } from '@/lib/utils';
+import AppCheckbox from '@/shared/reusable/AppCheckbox';
+import AppFormInput from '@/shared/reusable/AppFormInput';
+import AppFormLabel from '@/shared/reusable/AppFormLabel';
 import { formatLabel } from '@/shared/utils/format';
 import type { PolicyCatalogField } from '@/types/api';
 
@@ -19,6 +21,8 @@ export function cloneParamDefinitions(
   return paramDefinitions.map((param) => ({ ...param }));
 }
 
+const readOnlyInputClass = 'bg-neutral-100 text-black-400';
+
 export function FieldParamDefinitionsSettings({
   paramDefinitions,
   onChange,
@@ -31,55 +35,73 @@ export function FieldParamDefinitionsSettings({
   }
 
   return (
-    <section className="space-y-3 rounded-lg border border-border/60 bg-muted/10 p-4">
+    <section className="space-y-3 rounded-lg border border-black-50 bg-neutral-100/50 p-4">
       <div>
-        <p className="text-sm font-medium text-foreground">Field parameters</p>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-sm font-medium text-neutral-950">Field parameters</p>
+        <p className="text-xs/[16.8px] text-black-400">
           Customize labels and requirements for parameters shown in the policy builder.
         </p>
       </div>
-      {paramDefinitions.map((param, index) => (
-        <div
-          key={param.key}
-          className="space-y-3 border-t border-border/40 pt-3 first:border-0 first:pt-0"
-        >
-          <FormField label="Parameter key">
-            <Input value={param.key} readOnly disabled className="bg-muted/40 font-mono text-xs" />
-          </FormField>
-          <FormField label="Parameter type">
-            <Input
-              value={formatLabel(param.type)}
-              readOnly
-              disabled
-              className="bg-muted/40"
-            />
-          </FormField>
-          <FormField label="Display label" htmlFor={`field-param-label-${param.key}`}>
-            <Input
-              id={`field-param-label-${param.key}`}
-              value={param.label}
-              onChange={(event) => {
-                const next = [...paramDefinitions];
-                next[index] = { ...param, label: event.target.value };
-                onChange(next);
-              }}
-            />
-          </FormField>
-          <label className="flex cursor-pointer items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="size-4 rounded border-border"
-              checked={param.required ?? false}
-              onChange={(event) => {
-                const next = [...paramDefinitions];
-                next[index] = { ...param, required: event.target.checked };
-                onChange(next);
-              }}
-            />
-            Required when building conditions
-          </label>
-        </div>
-      ))}
+      {paramDefinitions.map((param, index) => {
+        const checkboxId = `field-param-required-${param.key}`;
+        return (
+          <div
+            key={param.key}
+            className="space-y-3 border-t border-black-50 pt-3 first:border-0 first:pt-0"
+          >
+            <div className="space-y-3">
+              <AppFormLabel className="text-black-400">Parameter key</AppFormLabel>
+              <AppFormInput
+                placeholder=""
+                value={param.key}
+                readOnly
+                disabled
+                className={cn(readOnlyInputClass, 'font-mono text-xs')}
+              />
+            </div>
+            <div className="space-y-3">
+              <AppFormLabel className="text-black-400">Parameter type</AppFormLabel>
+              <AppFormInput
+                placeholder=""
+                value={formatLabel(param.type)}
+                readOnly
+                disabled
+                className={readOnlyInputClass}
+              />
+            </div>
+            <div className="space-y-3">
+              <AppFormLabel htmlFor={`field-param-label-${param.key}`} className="text-black-400">
+                Display label
+              </AppFormLabel>
+              <AppFormInput
+                id={`field-param-label-${param.key}`}
+                placeholder="Parameter label"
+                value={param.label}
+                onChange={(event) => {
+                  const next = [...paramDefinitions];
+                  next[index] = { ...param, label: event.target.value };
+                  onChange(next);
+                }}
+              />
+            </div>
+            <label
+              htmlFor={checkboxId}
+              className="flex cursor-pointer items-center gap-3 text-sm text-neutral-950"
+            >
+              <AppCheckbox
+                id={checkboxId}
+                checked={param.required ?? false}
+                onCheckedChange={(checked) => {
+                  const next = [...paramDefinitions];
+                  next[index] = { ...param, required: checked };
+                  onChange(next);
+                }}
+              />
+              Required when building conditions
+            </label>
+          </div>
+        );
+      })}
     </section>
   );
 }
