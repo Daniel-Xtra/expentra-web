@@ -1,6 +1,6 @@
 import * as React from "react"
 import { Dialog as DialogPrimitive } from "radix-ui"
-import closeIconUrl from "@/assets/close.png"
+import closeIconUrl from "@/assets/icons/close.png"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 function Dialog({
