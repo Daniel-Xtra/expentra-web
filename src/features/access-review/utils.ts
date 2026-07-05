@@ -1,5 +1,5 @@
-import { OrgGrantType } from '@/types/auth';
-import type { AccessReviewRow } from '@/types/access-review';
+import { OrgGrantType } from '@/features/auth/types';
+import type { AccessReviewRow } from '@/features/access-review/types';
 
 export function formatOrgGrantLabel(grant: AccessReviewRow['orgGrants'][number]): string {
   if (grant.type === OrgGrantType.DEPARTMENT_MANAGER) {

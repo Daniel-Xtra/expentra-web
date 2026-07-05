@@ -21,15 +21,3 @@ export const positiveNumberField = (label: string) =>
     .number({ message: `${label} must be a positive number` })
     .int(`${label} must be a positive number`)
     .min(1, `${label} must be a positive number`);
-
-export const jsonObjectField = z
-  .string()
-  .min(1, 'Config is required')
-  .refine((value) => {
-    try {
-      const parsed = JSON.parse(value) as unknown;
-      return typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed);
-    } catch {
-      return false;
-    }
-  }, 'Config must be valid JSON');

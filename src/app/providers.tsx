@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
 import type { ReactNode } from 'react';
 import { Toaster } from '@/components/ui/sonner';
-import { AuthProvider } from '@/features/auth/auth-provider';
+import { AuthProvider } from '@/features/auth/components/auth-provider';
 import { PageMetadataProvider } from '@/shared/context/page-metadata-context';
 
 const queryClient = new QueryClient({

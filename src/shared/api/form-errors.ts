@@ -4,12 +4,12 @@ import type { ApiResponse } from '@/types/api';
 import { getApiErrorMessage } from '@/shared/api/client';
 import { toast } from 'sonner';
 
-export type ApiFieldError = {
+type ApiFieldError = {
   field: string;
   message: string;
 };
 
-export function getApiFieldErrors(error: unknown): ApiFieldError[] {
+function getApiFieldErrors(error: unknown): ApiFieldError[] {
   if (!axios.isAxiosError(error)) {
     return [];
   }
@@ -30,7 +30,7 @@ export function getApiFieldErrors(error: unknown): ApiFieldError[] {
     }));
 }
 
-export function applyApiFieldErrors<T extends FieldValues>(
+function applyApiFieldErrors<T extends FieldValues>(
   error: unknown,
   setError: UseFormSetError<T>,
 ): boolean {

@@ -21,10 +21,11 @@ import { ErrorState } from '@/shared/components/ErrorState';
 import { FilterCard } from '@/shared/components/FilterCard';
 import { SearchField } from '@/shared/components/SearchField';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
-import { SimplePagination } from '@/shared/components/SimplePagination';
+import { TablePagination } from '@/shared/components/TablePagination';
+import { shouldShowPagination } from '@/shared/lib/pagination';
 import { StatusPill } from '@/shared/components/StatusPill';
 import { formatRoleName } from '@/shared/utils/format';
-import type { RoleResponse } from '@/types/api';
+import type { PaginationMeta, RoleResponse } from '@/types/api';
 
 type RolesTabProps = {
   search: string;
@@ -33,8 +34,7 @@ type RolesTabProps = {
   rolesQueryError: Error | null;
   onRetryRoles?: () => void;
   rolesRetrying?: boolean;
-  page: number;
-  totalPages: number;
+  meta: PaginationMeta;
   onPageChange: (page: number) => void;
   onCreateRole: () => void;
   onEditRole: (role: RoleResponse) => void;
@@ -53,8 +53,7 @@ export function RolesTab({
   rolesQueryError,
   onRetryRoles,
   rolesRetrying,
-  page,
-  totalPages,
+  meta,
   onPageChange,
   onCreateRole,
   onEditRole,
@@ -163,7 +162,9 @@ export function RolesTab({
               ))}
             </TableBody>
           </Table>
-          <SimplePagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
+          {shouldShowPagination(meta) ? (
+            <TablePagination meta={meta} onPageChange={onPageChange} />
+          ) : null}
         </Card>
       )}
     </div>

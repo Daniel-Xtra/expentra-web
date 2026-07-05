@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { filterNavSections } from '@/shared/navigation';
 
 export function useVisibleNavSections() {

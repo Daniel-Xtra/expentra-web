@@ -4,8 +4,8 @@ import {
   BuildingsIcon,
   ChartBarIcon,
 } from '@phosphor-icons/react';
-import shieldCheckIconUrl from '@/assets/shield-check.png';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import shieldCheckIconUrl from '@/assets/icons/shield-check.png';
+import { UserAvatar } from '@/shared/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -16,7 +16,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { DataCard } from '@/shared/components/DataCard';
 import { AssetIcon } from '@/shared/components/AssetIcon';
 import { useResourceAuditLogs } from '@/shared/hooks/use-resource-audit-logs';
@@ -97,41 +97,43 @@ export function UserProfileView({
         backLabel={backLabel}
         actions={
           <div className="flex flex-wrap items-center gap-2">
-            {canManage && onEdit ? (
-              <Button variant="outline" size="sm" onClick={onEdit}>
-                Edit employee
-              </Button>
-            ) : null}
             {canManage && onToggleActive ? (
               <Button
-                variant={user.isActive ? 'outline' : 'default'}
-                size="sm"
+                variant={user.isActive ? "outline" : "default"}
+               className="h-11 font-normal text-sm px-7"
                 disabled={togglePending}
                 onClick={onToggleActive}
               >
-                {user.isActive ? 'Deactivate' : 'Activate'}
+                {user.isActive ? "Deactivate Employee" : "Activate Employee"}
+              </Button>
+            ) : null}
+         
+            {canManage && onEdit ? (
+              <Button className="h-11 font-normal text-sm px-7 bg-primary-500" onClick={onEdit}>
+                Edit Employee
               </Button>
             ) : null}
           </div>
         }
       />
 
-      <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-primary/5 via-card to-card">
+      <Card className="overflow-hidden border-border/60 bg-linear-to-br from-primary/5 via-card to-card">
         <CardContent className="space-y-5 p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-4">
-              <Avatar className="size-16 rounded-md">
-                <AvatarFallback className="rounded-md bg-muted text-lg font-semibold text-foreground">
-                  {displayName.charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
+              <UserAvatar user={user} size="lg" />
               <div className="min-w-0 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-lg font-semibold text-foreground">{displayName}</h2>
+                  <h2 className="text-lg font-semibold text-foreground">
+                    {displayName}
+                  </h2>
                   <StatusPill active={user.isActive} />
                   {user.isEmailVerified ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                      <AssetIcon src={shieldCheckIconUrl} className="size-3.5" />
+                      <AssetIcon
+                        src={shieldCheckIconUrl}
+                        className="size-3.5"
+                      />
                       Verified
                     </span>
                   ) : (
@@ -174,7 +176,8 @@ export function UserProfileView({
         onCopyReference={(reference) => void copyToClipboard(reference)}
       />
 
-      {(summary.orgGrants?.length ?? 0) > 0 || summary.managedDepartments.length > 0 ? (
+      {(summary.orgGrants?.length ?? 0) > 0 ||
+      summary.managedDepartments.length > 0 ? (
         <Card className="border-border/60">
           <CardContent className="py-4">
             <OrgGrantsPanel
@@ -231,7 +234,10 @@ export function UserProfileView({
               {summary.recentExpenses.map((expense) => (
                 <TableRow key={expense.reference}>
                   <TableCell>
-                    <ReferenceCell value={expense.reference} variant="compact" />
+                    <ReferenceCell
+                      value={expense.reference}
+                      variant="compact"
+                    />
                   </TableCell>
                   <TableCell>
                     <Link
@@ -241,7 +247,9 @@ export function UserProfileView({
                       {expense.title}
                     </Link>
                   </TableCell>
-                  <TableCell className="tabular-nums">{formatNgn(expense.amount)}</TableCell>
+                  <TableCell className="tabular-nums">
+                    {formatNgn(expense.amount)}
+                  </TableCell>
                   <TableCell>
                     <StatusBadge status={expense.status as ExpenseStatus} />
                   </TableCell>
@@ -284,9 +292,11 @@ export function UserProfileView({
               <TableBody>
                 {auditQuery.data?.map((log) => (
                   <TableRow key={log.reference}>
-                    <TableCell className="font-medium">{formatLabel(log.action)}</TableCell>
+                    <TableCell className="font-medium">
+                      {formatLabel(log.action)}
+                    </TableCell>
                     <TableCell className="text-muted-foreground">
-                      {log.actor ? formatUserName(log.actor) : 'System'}
+                      {log.actor ? formatUserName(log.actor) : "System"}
                     </TableCell>
                     <TableCell className="text-muted-foreground">
                       {formatDate(log.createdAt)}

@@ -50,7 +50,7 @@ export function DepartmentHeroPanel({
     !readOnly && (departmentCaps.update || departmentCaps.delete);
 
   return (
-    <Card className="overflow-hidden border-border/60 bg-gradient-to-br from-primary/5 via-card to-card">
+    <Card className="overflow-hidden border-border/60 bg-linear-to-br from-primary/5 via-card to-card">
       <CardContent className="space-y-5 p-5 sm:p-6">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
           <div className="flex min-w-0 items-start gap-4">
@@ -79,14 +79,14 @@ export function DepartmentHeroPanel({
           {showActions ? (
             <div className="flex flex-wrap items-center gap-2">
               {departmentCaps.update ? (
-                <Button variant="outline" onClick={onEdit}>
-                  Edit department
+                <Button className="h-11 font-normal text-sm px-7 bg-primary-500" onClick={onEdit}>
+                  Edit Department
                 </Button>
               ) : null}
               {departmentCaps.update || departmentCaps.delete ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="icon" aria-label="More actions">
+                    <Button variant="outline"  className="h-11 font-normal text-sm px-7" size="icon" aria-label="More actions">
                       <DotsThreeVerticalIcon className="size-4" />
                     </Button>
                   </DropdownMenuTrigger>

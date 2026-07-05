@@ -1,12 +1,5 @@
-import type { ExpenseStatus } from '@/types/api';
-
 export function pluralize(count: number, singular: string, plural = `${singular}s`) {
   return count === 1 ? singular : plural;
-}
-
-export function sharePercent(amount: number, total: number) {
-  if (total <= 0) return 0;
-  return Math.round((amount / total) * 100);
 }
 
 export function formatTrendPercent(value: number | null) {
@@ -15,24 +8,6 @@ export function formatTrendPercent(value: number | null) {
   const prefix = value > 0 ? '+' : '';
   return `${prefix}${value.toFixed(1)}%`;
 }
-
-export const STATUS_LABELS: Record<ExpenseStatus, string> = {
-  DRAFT: 'Draft',
-  SUBMITTED: 'Submitted',
-  UNDER_REVIEW: 'Under review',
-  APPROVED: 'Approved',
-  REJECTED: 'Rejected',
-  REIMBURSED: 'Reimbursed',
-};
-
-export const STATUS_BAR_COLORS: Record<ExpenseStatus, string> = {
-  DRAFT: 'bg-slate-400',
-  SUBMITTED: 'bg-indigo-500',
-  UNDER_REVIEW: 'bg-amber-500',
-  APPROVED: 'bg-emerald-500',
-  REJECTED: 'bg-red-500',
-  REIMBURSED: 'bg-primary',
-};
 
 export const CATEGORY_CHIP_COLORS: Record<string, string> = {
   TRAVEL: 'bg-violet-500/15 text-violet-700',

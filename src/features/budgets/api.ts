@@ -3,7 +3,6 @@ import { queueExport } from '@/shared/api/export';
 import type {
   ApiResponse,
   BudgetByDepartmentRow,
-  BudgetForecastResponse,
   BudgetHealthCounts,
   BudgetHealthFilter,
   BudgetListSortField,
@@ -77,16 +76,6 @@ export async function fetchCommittedByDepartment(
   return data.data ?? [];
 }
 
-export async function fetchOrganizationBudgetForecast(
-  year: number,
-): Promise<BudgetForecastResponse> {
-  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
-    '/budgets/organization/forecast',
-    { params: { year } },
-  );
-  return data.data ?? { hasBudget: false };
-}
-
 export async function exportBudgets(params: ListBudgetsParams = {}): Promise<string> {
   const result = await queueExport('/budgets/export', params);
   return result.message;
@@ -129,9 +118,3 @@ export async function fetchMyBudgetSummary(year?: number): Promise<BudgetSummary
   return data.data;
 }
 
-export async function fetchMyBudgetForecast(year?: number): Promise<BudgetForecastResponse> {
-  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>('/budgets/me/forecast', {
-    params: year ? { year } : undefined,
-  });
-  return data.data ?? { hasBudget: false };
-}

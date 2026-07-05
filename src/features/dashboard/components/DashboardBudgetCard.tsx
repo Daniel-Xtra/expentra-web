@@ -2,10 +2,9 @@ import { useQuery } from '@tanstack/react-query';
 import { Link } from 'react-router-dom';
 import { ArrowSquareOutIcon, ChartPieSliceIcon } from '@phosphor-icons/react';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/features/auth/use-auth';
-import { fetchMyBudgetForecast, fetchMyBudgetSummary } from '@/features/budgets/api';
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { fetchMyBudgetSummary } from '@/features/budgets/api';
 import { queryKeys } from '@/shared/api/query-keys';
-import { BudgetForecastCard } from '@/features/budgets/components/BudgetForecastCard';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { LoadingState } from '@/shared/components/LoadingState';
@@ -28,11 +27,6 @@ export function DashboardBudgetCard() {
     enabled: canViewDepartmentBudget,
   });
 
-  const forecastQuery = useQuery({
-    queryKey: queryKeys.budgets.meForecast(currentYear),
-    queryFn: () => fetchMyBudgetForecast(currentYear),
-    enabled: canViewDepartmentBudget && summaryQuery.data?.hasBudget === true,
-  });
 
   if (!canViewDepartmentBudget) {
     return null;
@@ -145,9 +139,7 @@ export function DashboardBudgetCard() {
         </div>
       </div>
 
-      {forecastQuery.data?.hasBudget ? (
-        <BudgetForecastCard forecast={forecastQuery.data} title="Your department forecast" />
-      ) : null}
+     
     </DataCard>
   );
 }

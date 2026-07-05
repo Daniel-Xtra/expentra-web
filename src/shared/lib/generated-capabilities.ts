@@ -63,5 +63,3 @@ export const GENERATED_CAPABILITY_KEYS = [
   "user:read",
   "user:update"
 ] as const;
-
-export type GeneratedCapabilityKey = (typeof GENERATED_CAPABILITY_KEYS)[number];

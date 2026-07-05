@@ -5,7 +5,7 @@ import {
   ArrowSquareOutIcon,
   UsersThreeIcon,
 } from '@phosphor-icons/react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/shared/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -30,7 +30,7 @@ import { TablePagination } from '@/shared/components/TablePagination';
 import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { DEFAULT_PAGE_SIZE, resolvePaginationMeta, shouldShowPagination } from '@/shared/lib/pagination';
 import { formatRoleName } from '@/shared/utils/format';
-import { formatUserName, getUserInitials } from '@/shared/utils/user';
+import { formatUserName } from '@/shared/utils/user';
 
 type DepartmentEmployeesSectionProps = {
   departmentReference: string;
@@ -156,7 +156,7 @@ export function DepartmentEmployeesSection({
                 ? 'Try a different name or email.'
                 : readOnly
                   ? 'No employees are currently assigned to this department.'
-                  : 'Assign employees to this department from team management.'
+                  : 'Assign employees to this department from Users.'
             }
           
           />
@@ -180,11 +180,7 @@ export function DepartmentEmployeesSection({
                   <TableRow key={employee.reference}>
                     <TableCell>
                       <div className="flex items-center gap-3">
-                        <Avatar className="size-9 rounded-md">
-                          <AvatarFallback className="rounded-md bg-muted text-xs font-semibold">
-                            {getUserInitials(employee)}
-                          </AvatarFallback>
-                        </Avatar>
+                        <UserAvatar user={employee} size="sm" />
                         <div className="min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <Link

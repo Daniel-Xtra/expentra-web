@@ -1,5 +1,5 @@
 import { Navigate, Outlet } from 'react-router-dom';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { canAccessRoute } from '@/shared/navigation';
 import type { NavAccess } from '@/shared/navigation';
 import { LoadingState } from './LoadingState';

@@ -13,8 +13,8 @@ import {
 } from '@/features/roles/schemas';
 import { handleMutationError } from '@/shared/api/form-errors';
 import { queryKeys } from '@/shared/api/query-keys';
+import { formatRoleName } from '@/shared/utils/format';
 import { toastSuccess } from '@/shared/lib/toast';
-import { normalizeRoleName } from '@/shared/utils/role-name';
 import type { RoleResponse } from '@/types/api';
 
 export function useRoleMutations() {
@@ -97,7 +97,7 @@ export function useRoleMutations() {
 
   const openEditRole = (role: RoleResponse) => {
     editRoleForm.reset({
-      name: normalizeRoleName(role.name),
+      name: formatRoleName(role.name),
       description: role.description ?? '',
     });
     setEditingRole(role);

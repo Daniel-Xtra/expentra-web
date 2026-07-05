@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { WarningCircleIcon } from '@phosphor-icons/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 
 export function EmailVerificationBanner() {
   const { user } = useAuth();

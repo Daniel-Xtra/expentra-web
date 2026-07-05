@@ -1,5 +1,5 @@
 import { canAccess, hasManagedDepartmentAccess } from '@/shared/lib/capabilities';
-import type { AuthorizationMe } from '@/types/auth';
+import type { AuthorizationMe } from '@/features/auth/types';
 
 export type NavAccess = string | string[];
 
@@ -82,7 +82,7 @@ export const navSections: NavSection[] = [
   }
 ];
 
-export type ProtectedRouteConfig = {
+type ProtectedRouteConfig = {
   id: string;
   path: string;
   capabilities: NavAccess;
@@ -254,10 +254,4 @@ export function getDefaultNavPath(
   }
 
   return '/profile';
-}
-
-export function getRouteCapabilities(path: string): NavAccess | undefined {
-  const normalized = path.replace(/^\//, '');
-  const config = protectedRouteConfigs.find((route) => route.path === normalized);
-  return config?.capabilities;
 }

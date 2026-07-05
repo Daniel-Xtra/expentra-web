@@ -10,65 +10,65 @@ function lazyNamed<T extends Record<string, ComponentType>>(
 }
 
 export const DashboardPage = withLazyPage(
-  lazyNamed(() => import('@/features/dashboard/DashboardPage'), 'DashboardPage'),
+  lazyNamed(() => import('@/features/dashboard/pages/DashboardPage'), 'DashboardPage'),
 );
 export const ExpenseListPage = withLazyPage(
-  lazyNamed(() => import('@/features/expenses/ExpenseListPage'), 'ExpenseListPage'),
+  lazyNamed(() => import('@/features/expenses/pages/ExpenseListPage'), 'ExpenseListPage'),
 );
 export const ExpenseDetailPage = withLazyPage(
-  lazyNamed(() => import('@/features/expenses/ExpenseDetailPage'), 'ExpenseDetailPage'),
+  lazyNamed(() => import('@/features/expenses/pages/ExpenseDetailPage'), 'ExpenseDetailPage'),
 );
 export const CreateExpensePage = withLazyPage(
-  lazyNamed(() => import('@/features/expenses/CreateExpensePage'), 'CreateExpensePage'),
+  lazyNamed(() => import('@/features/expenses/pages/CreateExpensePage'), 'CreateExpensePage'),
 );
 export const ProfilePage = withLazyPage(
-  lazyNamed(() => import('@/features/users/ProfilePage'), 'ProfilePage'),
+  lazyNamed(() => import('@/features/profile/pages/ProfilePage'), 'ProfilePage'),
 );
 export const ApprovalQueuePage = withLazyPage(
-  lazyNamed(() => import('@/features/approvals/ApprovalQueuePage'), 'ApprovalQueuePage'),
+  lazyNamed(() => import('@/features/approvals/pages/ApprovalQueuePage'), 'ApprovalQueuePage'),
 );
 export const DepartmentOverviewPage = withLazyPage(
-  lazyNamed(() => import('@/features/departments/DepartmentOverviewPage'), 'DepartmentOverviewPage'),
+  lazyNamed(() => import('@/features/department-overview/pages/DepartmentOverviewPage'), 'DepartmentOverviewPage'),
 );
 export const FinanceQueuePage = withLazyPage(
-  lazyNamed(() => import('@/features/finance/FinanceQueuePage'), 'FinanceQueuePage'),
+  lazyNamed(() => import('@/features/finance/pages/FinanceQueuePage'), 'FinanceQueuePage'),
 );
 export const ReportsPage = withLazyPage(
-  lazyNamed(() => import('@/features/reports/ReportsPage'), 'ReportsPage'),
+  lazyNamed(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage'),
 );
 export const NotificationsPage = withLazyPage(
-  lazyNamed(() => import('@/features/notifications/NotificationsPage'), 'NotificationsPage'),
+  lazyNamed(() => import('@/features/notifications/pages/NotificationsPage'), 'NotificationsPage'),
 );
 export const UsersPage = withLazyPage(
-  lazyNamed(() => import('@/features/users/UsersPage'), 'UsersPage'),
+  lazyNamed(() => import('@/features/users/pages/UsersPage'), 'UsersPage'),
 );
 export const UserDetailPage = withLazyPage(
-  lazyNamed(() => import('@/features/users/UserDetailPage'), 'UserDetailPage'),
+  lazyNamed(() => import('@/features/users/pages/UserDetailPage'), 'UserDetailPage'),
 );
 export const RolesPage = withLazyPage(
-  lazyNamed(() => import('@/features/roles/RolesPage'), 'RolesPage'),
+  lazyNamed(() => import('@/features/roles/pages/RolesPage'), 'RolesPage'),
 );
 export const DepartmentsPage = withLazyPage(
-  lazyNamed(() => import('@/features/departments/DepartmentsPage'), 'DepartmentsPage'),
+  lazyNamed(() => import('@/features/departments/pages/DepartmentsPage'), 'DepartmentsPage'),
 );
 export const DepartmentDetailPage = withLazyPage(
-  lazyNamed(() => import('@/features/departments/DepartmentDetailPage'), 'DepartmentDetailPage'),
+  lazyNamed(() => import('@/features/departments/pages/DepartmentDetailPage'), 'DepartmentDetailPage'),
 );
 export const BudgetsPage = withLazyPage(
-  lazyNamed(() => import('@/features/budgets/BudgetsPage'), 'BudgetsPage'),
+  lazyNamed(() => import('@/features/budgets/pages/BudgetsPage'), 'BudgetsPage'),
 );
 export const ApprovalLevelsPage = withLazyPage(
-  lazyNamed(() => import('@/features/approval-levels/ApprovalLevelsPage'), 'ApprovalLevelsPage'),
+  lazyNamed(() => import('@/features/approval-levels/pages/ApprovalLevelsPage'), 'ApprovalLevelsPage'),
 );
 export const DelegationsPage = withLazyPage(
-  lazyNamed(() => import('@/features/delegations/DelegationsPage'), 'DelegationsPage'),
+  lazyNamed(() => import('@/features/delegations/pages/DelegationsPage'), 'DelegationsPage'),
 );
 export const PoliciesPage = withLazyPage(
-  lazyNamed(() => import('@/features/policies/PoliciesPage'), 'PoliciesPage'),
+  lazyNamed(() => import('@/features/policies/pages/PoliciesPage'), 'PoliciesPage'),
 );
 export const AuditLogsPage = withLazyPage(
-  lazyNamed(() => import('@/features/audit/AuditLogsPage'), 'AuditLogsPage'),
+  lazyNamed(() => import('@/features/audit-logs/pages/AuditLogsPage'), 'AuditLogsPage'),
 );
 export const AccessReviewPage = withLazyPage(
-  lazyNamed(() => import('@/features/access-review/AccessReviewPage'), 'AccessReviewPage'),
+  lazyNamed(() => import('@/features/access-review/pages/AccessReviewPage'), 'AccessReviewPage'),
 );

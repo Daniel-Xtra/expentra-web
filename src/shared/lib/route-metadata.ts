@@ -1,6 +1,6 @@
 import { SITE_DESCRIPTION, SITE_NAME } from './site-metadata';
 
-export type RouteMetadata = {
+type RouteMetadata = {
   title: string;
   description: string;
   noIndex?: boolean;
@@ -77,8 +77,8 @@ const ROUTE_METADATA: Record<string, RouteMetadata> = {
     description: 'Updates on expense approvals, budgets, and account activity.',
   },
   '/admin/users': {
-    title: 'Team management',
-    description: 'Manage users, roles, and access across the organization.',
+    title: 'Users',
+    description: 'Manage employees, assignments, and account access.',
   },
   '/admin/departments': {
     title: 'Departments',
@@ -89,7 +89,7 @@ const ROUTE_METADATA: Record<string, RouteMetadata> = {
     description: 'Set and monitor annual department budget limits.',
   },
   '/admin/roles': {
-    title: 'Roles & permissions',
+    title: 'Roles',
     description: 'Configure roles and permission assignments.',
   },
   '/admin/approval-levels': {

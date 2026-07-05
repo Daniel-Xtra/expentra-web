@@ -1,7 +1,7 @@
-import { OrgGrantType, type OrgGrant } from '@/types/auth';
+import { OrgGrantType, type OrgGrant } from '@/features/auth/types';
 import { BuildingsIcon, InfoIcon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
-import type { DepartmentRef } from '@/types/refs';
+import type { DepartmentRef } from '@/shared/types/refs';
 
 type OrgGrantsPanelProps = {
   orgGrants?: OrgGrant[];

@@ -43,8 +43,6 @@ export const queryKeys = {
       [managed ? 'departments-managed' : 'departments', reference, 'manager-history', params] as const,
     budgetSummary: (reference: string, year: number | string, managed: boolean) =>
       [managed ? 'departments-managed' : 'departments', reference, 'budget-summary', year] as const,
-    budgetForecast: (reference: string, year: number | string, managed: boolean) =>
-      [managed ? 'departments-managed' : 'departments', reference, 'budget-forecast', year] as const,
     teamDashboard: (reference: string, year: number | string, managed: boolean) =>
       [managed ? 'departments-managed' : 'departments', reference, 'team-dashboard', year] as const,
   },
@@ -56,7 +54,6 @@ export const queryKeys = {
     healthCounts: (year: number) => ['budgets', 'health-counts', year] as const,
     byDepartment: (year: number) => ['budgets', 'by-department', year] as const,
     meSummary: (year: number) => ['budgets', 'me', 'summary', year] as const,
-    meForecast: (year: number) => ['budgets', 'me', 'forecast', year] as const,
   },
   approvalLevels: {
     all: ['approval-levels'] as const,
@@ -95,8 +92,10 @@ export const queryKeys = {
   },
   delegations: {
     all: ['delegations'] as const,
-    mine: () => ['delegations', 'mine'] as const,
-    toMe: () => ['delegations', 'to-me'] as const,
+    mine: (params?: { page?: number; limit?: number }) =>
+      ['delegations', 'mine', params] as const,
+    toMe: (params?: { page?: number; limit?: number }) =>
+      ['delegations', 'to-me', params] as const,
   },
   notifications: {
     all: ['notifications'] as const,

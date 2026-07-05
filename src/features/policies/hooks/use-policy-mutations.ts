@@ -12,7 +12,7 @@ import {
   type PolicyFormValues,
 } from '@/features/policies/policy-config';
 import { templateConditionsToForm } from '@/features/policies/policy-conditions';
-import { useCatalogFormResolver } from '@/features/policies/useCatalogFormResolver';
+import { useCatalogFormResolver } from '@/features/policies/hooks/useCatalogFormResolver';
 import { handleMutationError } from '@/shared/api/form-errors';
 import { queryKeys } from '@/shared/api/query-keys';
 import { toastSuccess } from '@/shared/lib/toast';

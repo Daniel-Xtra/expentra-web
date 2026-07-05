@@ -1,5 +1,10 @@
 import { api } from '@/shared/api/client';
-import type { ApiResponse, DelegationResponse } from '@/types/api';
+import type { ApiResponse, DelegationResponse, PaginatedResult } from '@/types/api';
+
+export type ListDelegationsParams = {
+  page?: number;
+  limit?: number;
+};
 
 export type CreateDelegationInput = {
   delegateReference: string;
@@ -7,16 +12,24 @@ export type CreateDelegationInput = {
   endsAt: string;
 };
 
-export async function listMyDelegations(): Promise<DelegationResponse[]> {
-  const { data } = await api.get<ApiResponse<DelegationResponse[]>>('/approval-delegations/mine');
-  return data.data ?? [];
+export async function listMyDelegations(
+  params: ListDelegationsParams = {},
+): Promise<PaginatedResult<DelegationResponse>> {
+  const { data } = await api.get<ApiResponse<DelegationResponse[]>>(
+    '/approval-delegations/mine',
+    { params },
+  );
+  return { items: data.data ?? [], meta: data.meta };
 }
 
-export async function listDelegationsToMe(): Promise<DelegationResponse[]> {
+export async function listDelegationsToMe(
+  params: ListDelegationsParams = {},
+): Promise<PaginatedResult<DelegationResponse>> {
   const { data } = await api.get<ApiResponse<DelegationResponse[]>>(
     '/approval-delegations/delegated-to-me',
+    { params },
   );
-  return data.data ?? [];
+  return { items: data.data ?? [], meta: data.meta };
 }
 
 export async function createDelegation(

@@ -1,5 +1,5 @@
-import type { AuthorizationMe } from '@/types/auth';
-import { OrgGrantType } from '@/types/auth';
+import type { AuthorizationMe } from '@/features/auth/types';
+import { OrgGrantType } from '@/features/auth/types';
 import { GENERATED_CAPABILITY_KEYS } from './generated-capabilities';
 
 const KNOWN_CAPABILITIES = new Set<string>(GENERATED_CAPABILITY_KEYS);

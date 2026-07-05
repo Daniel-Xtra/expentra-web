@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query';
 import { Fragment, useState } from 'react';
 import { ClockCounterClockwiseIcon, UserCircleIcon } from '@phosphor-icons/react';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { UserAvatar } from '@/shared/components/UserAvatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -15,7 +15,7 @@ import { ErrorState } from '@/shared/components/ErrorState';
 import { TablePagination } from '@/shared/components/TablePagination';
 import { DEFAULT_PAGE_SIZE, resolvePaginationMeta, shouldShowPagination } from '@/shared/lib/pagination';
 import { formatDate } from '@/shared/utils/format';
-import { formatUserName, getUserInitials } from '@/shared/utils/user';
+import { formatUserName } from '@/shared/utils/user';
 import type { DepartmentManagerHistoryResponse } from '@/types/api';
 
 type DepartmentManagerHistorySectionProps = {
@@ -28,7 +28,7 @@ function HistoryTimelineSkeleton() {
     <ul className="space-y-0 px-5 py-4">
       {Array.from({ length: 3 }).map((_, index) => (
         <li key={index} className="flex gap-3.5 pb-6 last:pb-0">
-          <Skeleton className="size-9 shrink-0 rounded-full" />
+          <Skeleton className="size-9 shrink-0 rounded-md" />
           <div className="flex flex-1 items-start justify-between gap-4 pt-0.5">
             <div className="space-y-2">
               <Skeleton className="h-4 w-52" />
@@ -67,28 +67,18 @@ function HistoryTimelineEntry({
       ) : null}
 
       {entry.manager ? (
-        <Avatar
+        <UserAvatar
+          user={entry.manager}
+          size="sm"
           className={cn(
-            'relative z-10 size-9 shrink-0 ring-4 ring-card',
+            'relative z-10 ring-4 ring-card',
             entry.isCurrent && 'ring-primary/15',
           )}
-        >
-          <AvatarFallback
-            className={cn(
-              'text-xs font-semibold',
-              entry.isCurrent
-                ? 'bg-primary/10 text-primary'
-                : 'bg-muted text-muted-foreground',
-            )}
-          >
-            {getUserInitials(entry.manager)}
-          </AvatarFallback>
-        </Avatar>
+        />
       ) : (
         <div
           className={cn(
-            'relative z-10 flex size-9 shrink-0 items-center justify-center rounded-full ring-4 ring-card',
-            'bg-muted text-muted-foreground',
+            'relative z-10 flex size-9 shrink-0 items-center justify-center rounded-md bg-neutral-950 text-white ring-4 ring-card',
           )}
         >
           <UserCircleIcon className="size-4" weight="duotone" />

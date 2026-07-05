@@ -2,7 +2,7 @@ const IDEMPOTENCY_HEADER = 'idempotency-key';
 
 const activeKeys = new Map<string, string>();
 
-export function createIdempotencyKey(scope: string): string {
+function createIdempotencyKey(scope: string): string {
   const suffix =
     typeof crypto !== 'undefined' && 'randomUUID' in crypto
       ? crypto.randomUUID().replace(/-/g, '')
@@ -12,7 +12,7 @@ export function createIdempotencyKey(scope: string): string {
   return key.length > 128 ? key.slice(0, 128) : key;
 }
 
-export function getIdempotencyKey(scope: string): string {
+function getIdempotencyKey(scope: string): string {
   const existing = activeKeys.get(scope);
   if (existing) {
     return existing;

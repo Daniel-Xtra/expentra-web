@@ -37,7 +37,7 @@ export function ExpenseListFilters({
         value={search}
         onValueChange={onSearchChange}
       />
-      <FormField label="Sort by" className="w-full sm:w-[180px]">
+      <FormField className="w-full sm:w-[180px]">
         <Select
           value={sortBy}
           onValueChange={(value) => {
@@ -57,7 +57,7 @@ export function ExpenseListFilters({
           </SelectContent>
         </Select>
       </FormField>
-      <FormField label="Order" className="w-full sm:w-[140px]">
+      <FormField className="w-full sm:w-[140px]">
         <Select
           value={sortOrder}
           onValueChange={(value) => {

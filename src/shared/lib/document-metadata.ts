@@ -1,6 +1,6 @@
 import { formatPageTitle } from './site-metadata';
 
-export type DocumentMetadataInput = {
+type DocumentMetadataInput = {
   title: string;
   description: string;
   noIndex?: boolean;

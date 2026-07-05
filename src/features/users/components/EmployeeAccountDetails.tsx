@@ -1,6 +1,6 @@
 import { CopyIcon } from '@phosphor-icons/react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ProfileInfoField } from '@/features/users/components/ProfileInfoField';
+import { ProfileInfoField } from '@/shared/components/ProfileInfoField';
 import { formatDate } from '@/shared/utils/format';
 import type { UserResponse } from '@/types/api';
 

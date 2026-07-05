@@ -2,7 +2,6 @@ import { api } from '@/shared/api/client';
 import { queueExport } from '@/shared/api/export';
 import type {
   ApiResponse,
-  BudgetForecastResponse,
   BudgetSummaryResponse,
   DepartmentDetailSummary,
   DepartmentHealthFilter,
@@ -224,28 +223,6 @@ export async function fetchManagedDepartmentBudgetSummary(
     throw new Error(data.message || 'Failed to load budget summary');
   }
   return data.data;
-}
-
-export async function fetchDepartmentBudgetForecast(
-  reference: string,
-  year?: number,
-): Promise<BudgetForecastResponse> {
-  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
-    `/departments/${reference}/budget-forecast`,
-    { params: year ? { year } : undefined },
-  );
-  return data.data ?? { hasBudget: false };
-}
-
-export async function fetchManagedDepartmentBudgetForecast(
-  reference: string,
-  year?: number,
-): Promise<BudgetForecastResponse> {
-  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
-    `/departments/managed/${reference}/budget-forecast`,
-    { params: year ? { year } : undefined },
-  );
-  return data.data ?? { hasBudget: false };
 }
 
 export async function fetchDepartmentTeamDashboard(

@@ -1,6 +1,6 @@
 import { api } from '@/shared/api/client';
 import { downloadBlob } from '@/shared/utils/download';
-import type { AccessReviewRow } from '@/types/access-review';
+import type { AccessReviewRow } from '@/features/access-review/types';
 import type { ApiResponse } from '@/types/api';
 
 export async function fetchAccessReview(): Promise<AccessReviewRow[]> {

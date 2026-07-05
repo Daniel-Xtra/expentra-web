@@ -1,14 +1,6 @@
-import { BriefcaseIcon, DotsThreeVerticalIcon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { Card } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -17,18 +9,20 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { EmployeeActions, EmployeeCard } from '@/features/users/components/EmployeeCard';
 import { UserStatusSummary } from '@/features/users/components/UserStatusSummary';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { FilterCard } from '@/shared/components/FilterCard';
 import { SearchField } from '@/shared/components/SearchField';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
-import { SimplePagination } from '@/shared/components/SimplePagination';
+import { TablePagination } from '@/shared/components/TablePagination';
+import { shouldShowPagination } from '@/shared/lib/pagination';
 import { StatusPill } from '@/shared/components/StatusPill';
 import { ViewModeToggle, type ViewMode } from '@/shared/components/ViewModeToggle';
 import { formatLabel, formatRoleName } from '@/shared/utils/format';
 import { formatUserName } from '@/shared/utils/user';
-import type { DepartmentResponse, RoleResponse, UserResponse } from '@/types/api';
+import type { DepartmentResponse, PaginationMeta, RoleResponse, UserResponse } from '@/types/api';
 import type { UseMutationResult } from '@tanstack/react-query';
 
 type EmployeesTabProps = {
@@ -51,8 +45,7 @@ type EmployeesTabProps = {
   usersRetrying?: boolean;
   statusCounts?: { total: number; active: number; inactive: number; unassignedDepartment: number };
   statusCountsLoading: boolean;
-  page: number;
-  totalPages: number;
+  meta: PaginationMeta;
   onPageChange: (page: number) => void;
   selectedUsers: string[];
   onToggleUser: (reference: string, checked: boolean) => void;
@@ -85,8 +78,7 @@ export function EmployeesTab({
   usersRetrying,
   statusCounts,
   statusCountsLoading,
-  page,
-  totalPages,
+  meta,
   onPageChange,
   selectedUsers,
   onToggleUser,
@@ -147,7 +139,7 @@ export function EmployeesTab({
       ) : (
         <>
           {viewMode === 'card' ? (
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid sm:grid-cols-2 gap-4">
               {users.map((user) => (
                 <EmployeeCard
                   key={user.reference}
@@ -246,111 +238,11 @@ export function EmployeesTab({
               </Table>
             </Card>
           )}
-          <SimplePagination page={page} totalPages={totalPages} onPageChange={onPageChange} />
+          {shouldShowPagination(meta) ? (
+            <TablePagination meta={meta} onPageChange={onPageChange} />
+          ) : null}
         </>
       )}
     </div>
-  );
-}
-
-type EmployeeActionsProps = {
-  user: UserResponse;
-  canUpdateUsers: boolean;
-  onEditUser: (user: UserResponse) => void;
-  updateUserMutation: EmployeesTabProps['updateUserMutation'];
-};
-
-function EmployeeActions({
-  user,
-  canUpdateUsers,
-  onEditUser,
-  updateUserMutation,
-}: EmployeeActionsProps) {
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" aria-label="Employee actions">
-          <DotsThreeVerticalIcon className="size-4" />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
-        <DropdownMenuItem asChild>
-          <Link to={`/admin/users/${user.reference}`}>View profile</Link>
-        </DropdownMenuItem>
-        {canUpdateUsers ? (
-          <>
-            <DropdownMenuItem onClick={() => onEditUser(user)}>Edit employee</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                void updateUserMutation.mutateAsync({
-                  reference: user.reference,
-                  isActive: !user.isActive,
-                })
-              }
-            >
-              {user.isActive ? 'Deactivate' : 'Activate'}
-            </DropdownMenuItem>
-          </>
-        ) : null}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
-type EmployeeCardProps = {
-  user: UserResponse;
-  canUpdateUsers: boolean;
-  onEditUser: (user: UserResponse) => void;
-  updateUserMutation: EmployeesTabProps['updateUserMutation'];
-};
-
-function EmployeeCard({ user, canUpdateUsers, onEditUser, updateUserMutation }: EmployeeCardProps) {
-  return (
-    <Card className="border-border/60">
-      <CardContent className="relative space-y-3 py-4">
-        <div className="absolute top-2 right-2">
-          <EmployeeActions
-            user={user}
-            canUpdateUsers={canUpdateUsers}
-            onEditUser={onEditUser}
-            updateUserMutation={updateUserMutation}
-          />
-        </div>
-
-        <div className="pr-8">
-          <Link
-            to={`/admin/users/${user.reference}`}
-            className="font-semibold text-foreground hover:text-primary hover:underline"
-          >
-            {formatUserName(user)}
-          </Link>
-          <p className="text-xs text-muted-foreground">{user.email}</p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill active={user.isActive} />
-          {user.isDepartmentManager ? (
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
-              Manager
-            </span>
-          ) : null}
-          {user.department?.name && (
-            <Link
-              to={`/admin/departments/${user.department.reference}`}
-              className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <BriefcaseIcon className="size-3" />
-              {formatLabel(user.department.name)}
-            </Link>
-          )}
-          {user.role?.name && (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground">
-              {formatRoleName(user.role.name)}
-            </span>
-          )}
-        </div>
-      </CardContent>
-    </Card>
   );
 }

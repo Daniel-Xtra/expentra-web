@@ -14,7 +14,7 @@ import { TagSummary } from '@/features/access-review/components/TagSummary';
 import { formatOrgGrantLabel } from '@/features/access-review/utils';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { formatLabel } from '@/shared/utils/format';
-import type { AccessReviewRow } from '@/types/access-review';
+import type { AccessReviewRow } from '@/features/access-review/types';
 
 type AccessReviewTableProps = {
   rows: AccessReviewRow[];

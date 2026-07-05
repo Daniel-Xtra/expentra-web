@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { canAccess } from '@/shared/lib/capabilities';
 
 function useCaps() {

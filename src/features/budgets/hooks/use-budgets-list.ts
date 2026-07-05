@@ -17,7 +17,6 @@ import type { BudgetListSortField, BudgetListSortOrder } from '@/types/api';
 export function useBudgetsList() {
   const currentYear = new Date().getFullYear();
   const [search, setSearch] = useState('');
-  const [departmentFilter, setDepartmentFilter] = useState(ALL_VALUE);
   const [yearFilter, setYearFilter] = useState(String(currentYear));
   const [statusFilter, setStatusFilter] = useState(ALL_VALUE);
   const [healthFilter, setHealthFilter] = useState('all');
@@ -31,7 +30,6 @@ export function useBudgetsList() {
     page,
     limit: DEFAULT_PAGE_SIZE,
     year: selectedYear,
-    departmentReference: departmentFilter === ALL_VALUE ? undefined : departmentFilter,
     sortBy,
     sortOrder,
     healthFilter: resolveBudgetHealthFilter(healthFilter),
@@ -66,8 +64,6 @@ export function useBudgetsList() {
     currentYear,
     search,
     setSearch,
-    departmentFilter,
-    setDepartmentFilter,
     yearFilter,
     setYearFilter,
     statusFilter,

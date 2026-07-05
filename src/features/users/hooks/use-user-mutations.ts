@@ -82,9 +82,14 @@ export function useUserMutations() {
       roleReference?: string | null;
       departmentReference?: string | null;
       isActive?: boolean;
+      displayName?: string;
     }) => adminUpdateUser(reference, { roleReference, departmentReference, isActive }),
-    onSuccess: async () => {
-      toastSuccess('Employee updated');
+    onSuccess: async (_data, variables) => {
+      toastSuccess(
+        variables.displayName
+          ? `${variables.displayName} updated successfully`
+          : 'Employee updated successfully',
+      );
       setEditingUser(null);
       await invalidateUsers();
     },

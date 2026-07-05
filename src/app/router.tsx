@@ -1,4 +1,5 @@
-import { createBrowserRouter, Navigate, useParams } from 'react-router-dom';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
+import { LegacyDepartmentOverviewRedirect } from '@/app/legacy-department-overview-redirect';
 import {
   ApprovalLevelsPage,
   ApprovalQueuePage,
@@ -22,13 +23,13 @@ import {
   UserDetailPage,
   UsersPage,
 } from '@/app/lazy-pages';
-import { LoginPage } from '@/features/auth/LoginPage';
-import { ForgotPasswordPage } from '@/features/auth/ForgotPasswordPage';
-import { ResetPasswordPage } from '@/features/auth/ResetPasswordPage';
-import { ResetPasswordRedirect } from '@/features/auth/ResetPasswordRedirect';
-import { VerifyOtpPage } from '@/features/auth/VerifyOtpPage';
-import { SignUpPage } from '@/features/auth/SignUpPage';
-import { VerifyEmailPage } from '@/features/auth/VerifyEmailPage';
+import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
+import { ResetPasswordRedirect } from '@/features/auth/components/ResetPasswordRedirect';
+import { VerifyOtpPage } from '@/features/auth/pages/VerifyOtpPage';
+import { SignUpPage } from '@/features/auth/pages/SignUpPage';
+import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage';
 import { AppLayout } from '@/shared/components/AppLayout';
 import { CapabilityRoute } from '@/shared/components/CapabilityRoute';
 import { DocumentMetadataLayout } from '@/shared/components/DocumentMetadata';
@@ -36,16 +37,6 @@ import { HomeRedirect } from '@/shared/components/HomeRedirect';
 import { EmailVerifiedRoute } from '@/shared/components/EmailVerifiedRoute';
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute';
 import { protectedRouteConfigs } from '@/shared/navigation';
-
-function LegacyDepartmentOverviewRedirect() {
-  const { reference } = useParams();
-  return (
-    <Navigate
-      to={reference ? `/department-overview/${reference}` : '/department-overview'}
-      replace
-    />
-  );
-}
 
 function routeGuard(id: string) {
   const config = protectedRouteConfigs.find((route) => route.id === id);

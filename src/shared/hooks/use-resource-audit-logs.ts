@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { listAuditLogsForResource } from '@/features/audit/api';
+import { listAuditLogsForResource } from '@/features/audit-logs/api';
 import { queryKeys } from '@/shared/api/query-keys';
 
 export function useResourceAuditLogs(resourceReference: string | undefined, enabled = true) {
