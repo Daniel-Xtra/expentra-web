@@ -8,7 +8,7 @@ import { IconFile } from './icons';
 import { LoadingState } from './LoadingState';
 import { navIconMap } from './nav-icon-map';
 
-export const SIDEBAR_WIDTH = 260;
+const SIDEBAR_WIDTH = 260;
 
 type SidebarProps = {
   open: boolean;
@@ -26,7 +26,7 @@ function NavItemLink({ item }: { item: NavItem }) {
         cn(
           'flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
           isActive
-            ? 'bg-primary/8 text-primary'
+            ? 'bg-[#31b4540d] text-foreground [&_svg]:text-[#31b454]'
             : 'text-sidebar-foreground hover:bg-muted/70 hover:text-foreground',
         )
       }

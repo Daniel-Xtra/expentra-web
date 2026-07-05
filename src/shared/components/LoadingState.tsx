@@ -114,10 +114,10 @@ function DetailLayoutSkeleton() {
 
 function AuthLayoutSkeleton() {
   return (
-    <div className="flex w-full max-w-sm flex-col items-center gap-4">
-      <Skeleton className="size-10 rounded-full" />
-      <Skeleton className="h-4 w-40" />
-      <Skeleton className="h-3 w-56" />
+    <div className="flex w-full flex-col items-center gap-4 py-4">
+      <div className="h-2 w-full max-w-[200px] animate-pulse rounded-full bg-black-50" />
+      <div className="h-8 w-48 animate-pulse rounded-md bg-black-50" />
+      <div className="h-4 w-full max-w-[280px] animate-pulse rounded-md bg-black-50" />
     </div>
   );
 }

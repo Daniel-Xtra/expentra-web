@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40" fill="none" role="img" aria-label="Expentra mark">
   <defs>
     <linearGradient id="mark-bg" x1="8" y1="6" x2="32" y2="34" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#5B9BFF"/>
-      <stop offset="1" stop-color="#1D4ED8"/>
+      <stop stop-color="#4DA3FF"/>
+      <stop offset="1" stop-color="#006aff"/>
     </linearGradient>
     <linearGradient id="mark-shine" x1="10" y1="8" x2="24" y2="22" gradientUnits="userSpaceOnUse">
       <stop stop-color="#fff" stop-opacity=".28"/>
@@ -18,7 +18,7 @@
   <rect x="13.5" y="17.8" width="8" height="2" rx="1" fill="#A8C4FA"/>
   <path
     d="M13.5 26.5h3l2.2-3.2 2.8 1.7 4.4-7.2"
-    stroke="#1D4ED8"
+    stroke="#006aff"
     stroke-width="2.2"
     stroke-linecap="round"
     stroke-linejoin="round"

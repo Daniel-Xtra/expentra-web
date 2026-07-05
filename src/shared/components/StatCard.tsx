@@ -11,12 +11,12 @@ type StatCardProps = {
   className?: string;
 };
 
-const toneStyles = {
-  default: 'from-muted/80 to-card',
-  primary: 'from-primary/12 to-card',
-  success: 'from-emerald-500/10 to-card',
-  warning: 'from-amber-500/10 to-card',
-};
+// const toneStyles = {
+//   default: 'from-muted/80 to-card',
+//   primary: 'from-primary/12 to-card',
+//   success: 'from-emerald-500/10 to-card',
+//   warning: 'from-amber-500/10 to-card',
+// };
 
 const iconToneStyles = {
   default: 'bg-muted text-muted-foreground',
@@ -36,18 +36,19 @@ export function StatCard({
   return (
     <Card
       className={cn(
-        'relative overflow-hidden border-border/60 bg-gradient-to-br',
-        toneStyles[tone],
+        "relative overflow-hidden border-[0.5px] border-neutral-200 rounded-[8px] bg-white",
         className,
       )}
     >
-      <CardContent className="space-y-2 pt-4">
+      <CardContent className="space-y-2 pt-2 px-4">
         <div className="flex items-start justify-between gap-3">
-          <p className="text-xs font-medium text-muted-foreground">{label}</p>
+          <p className="font-normal text-[11px]/[15.4px] md:text-sm/[19.6px] text-neutral-400">
+            {label}
+          </p>
           {icon && (
             <div
               className={cn(
-                'flex size-7 shrink-0 items-center justify-center rounded-md',
+                "flex size-7 shrink-0 items-center justify-center rounded-md",
                 iconToneStyles[tone],
               )}
             >
@@ -55,7 +56,9 @@ export function StatCard({
             </div>
           )}
         </div>
-        <p className="text-xl font-semibold tracking-tight text-foreground">{value}</p>
+        <p className="font-semibold text-base/[22.4px] md:text-xl/[33.6px] text-neutral-950">
+          {value}
+        </p>
         {hint && <div className="text-xs text-muted-foreground">{hint}</div>}
       </CardContent>
     </Card>

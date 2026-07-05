@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" fill="none" role="img" aria-label="Expentra">
   <defs>
     <linearGradient id="expentra-bg" x1="6" y1="4" x2="26" y2="28" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#5B9BFF"/>
-      <stop offset="1" stop-color="#1D4ED8"/>
+      <stop stop-color="#4DA3FF"/>
+      <stop offset="1" stop-color="#006aff"/>
     </linearGradient>
     <linearGradient id="expentra-shine" x1="8" y1="6" x2="20" y2="18" gradientUnits="userSpaceOnUse">
       <stop stop-color="#fff" stop-opacity=".35"/>
@@ -18,7 +18,7 @@
   <rect x="10.5" y="14.2" width="6.2" height="1.6" rx=".8" fill="#A8C4FA"/>
   <path
     d="M10.5 21.2h2.4l1.8-2.6 2.3 1.4 3.6-5.8"
-    stroke="#1D4ED8"
+    stroke="#006aff"
     stroke-width="1.8"
     stroke-linecap="round"
     stroke-linejoin="round"

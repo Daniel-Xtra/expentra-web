@@ -1,14 +1,10 @@
 import { Fragment } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  CaretDownIcon,
   HouseIcon,
   ListIcon,
 } from '@phosphor-icons/react';
-import logoutIconUrl from '@/assets/logout.png';
-import notificationIconUrl from '@/assets/notification.png';
-import settingsIconUrl from '@/assets/settings.png';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import notificationIconUrl from '@/assets/icons/notification.png';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -18,19 +14,12 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { useUnreadNotifications } from '@/features/notifications/hooks/use-unread-notifications';
-import { useAuth } from '@/features/auth/use-auth';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { getBreadcrumbs } from '@/shared/lib/breadcrumbs';
 import { hasNavAccess, NOTIFICATION_READ_ACCESS } from '@/shared/navigation';
-import { formatUserName, resolveRoleLabel } from '@/shared/utils/user';
 import { AssetIcon } from '@/shared/components/AssetIcon';
+import { NavbarProfileDropdown } from '@/shared/components/NavbarProfileDropdown';
 
 type TopBarProps = {
   onMenuClick: () => void;
@@ -132,51 +121,11 @@ export function TopBar({ onMenuClick }: TopBarProps) {
           </Button>
         )}
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button
-              type="button"
-              className="flex cursor-pointer items-center gap-2.5 rounded-md py-1 pl-1 pr-2 transition-colors hover:bg-muted/60"
-            >
-              <Avatar className="size-9 rounded-md">
-                <AvatarFallback className="rounded-md bg-muted text-xs font-semibold text-foreground">
-                  {formatUserName(user).charAt(0).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div className="hidden min-w-0 text-left md:block">
-                <div className="flex max-w-[150px] items-center gap-1">
-                  <span className="truncate text-sm font-semibold text-foreground">
-                    {formatUserName(user)}
-                  </span>
-                  <CaretDownIcon className="size-3.5 shrink-0 text-muted-foreground" />
-                </div>
-                <p className="truncate text-xs text-muted-foreground">
-                  {resolveRoleLabel(authorization, user)}
-                </p>
-              </div>
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <div className="px-2 py-1.5">
-              <p className="truncate text-xs font-medium text-foreground">{formatUserName(user)}</p>
-              <p className="truncate text-[11px] text-muted-foreground">
-                {resolveRoleLabel(authorization, user)}
-              </p>
-            </div>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem asChild>
-              <Link to="/profile">
-                <AssetIcon src={settingsIconUrl} className="size-3.5" />
-                Profile
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => void signOut()}>
-              <AssetIcon src={logoutIconUrl} className="size-3.5" />
-              Sign out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <NavbarProfileDropdown
+          user={user}
+          authorization={authorization}
+          onSignOut={signOut}
+        />
       </div>
     </header>
   );
