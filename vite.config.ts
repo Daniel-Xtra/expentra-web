@@ -1,7 +1,13 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import path from "path"
 
+/**
+ * Injects CSP into production HTML using VITE_API_URL from the build environment.
+ * API origins stay in Vercel env vars (not committed). frame-ancestors is not
+ * enforceable via meta tags — clickjacking is covered by X-Frame-Options in vercel.json.
+ */
 function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
   return {
     name: "content-security-policy",
@@ -22,7 +28,6 @@ function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
         "img-src 'self' data: blob:",
         `connect-src ${connectSrc}`,
         "frame-src 'self' blob:",
-        "frame-ancestors 'none'",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -52,6 +57,10 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
+    build: {
+      // Production source maps are omitted to avoid exposing client source publicly.
+      sourcemap: false,
+    },
     server: proxyTarget
       ? {
           proxy: {
@@ -62,5 +71,10 @@ export default defineConfig(({ mode }) => {
           },
         }
       : undefined,
+    test: {
+      environment: "jsdom",
+      globals: true,
+      setupFiles: ["./src/test/setup.ts"],
+    },
   }
 })

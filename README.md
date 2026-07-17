@@ -1,73 +1,42 @@
-# React + TypeScript + Vite
+# Expentra Web
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React frontend for Expentra — expense management for modern teams. Built with Vite, React 19, TypeScript, Tailwind CSS, and React Router.
 
-Currently, two official plugins are available:
+## Requirements
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Node.js ≥ 20.19
+- pnpm 9+ (enable via `corepack enable`)
 
-## React Compiler
+## Local development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+cp .env.example .env
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+App runs at [http://localhost:5173](http://localhost:5173).
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## Scripts
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+| Command | Description |
+|---------|-------------|
+| `pnpm dev` | Start Vite dev server with HMR |
+| `pnpm lint` | Run ESLint |
+| `pnpm typecheck` | Run TypeScript project build (no emit) |
+| `pnpm test` | Run Vitest unit tests |
+| `pnpm build` | Typecheck + production build to `dist/` |
+| `pnpm preview` | Serve the production build locally |
+
+## Environment variables
+
+Copy [`.env.example`](.env.example) to `.env`. All `VITE_*` variables are embedded in the client bundle and are publicly visible — never put secrets there.
+
+## Deployment
+
+See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the full guide covering:
+
+- GitHub Actions CI
+- Vercel hosting (preview, development, production)
+- Branch strategy (`feature/*` → preview, `develop` → dev, `main` → prod)
+- Environment variables, security headers, rollback, and troubleshooting
