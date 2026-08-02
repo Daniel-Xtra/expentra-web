@@ -46,14 +46,6 @@ export type OrganizationBudgetSummaryResponse = {
   hasBudget: boolean;
 };
 
-export type BudgetHealthCounts = {
-  year: number;
-  overBudget: number;
-  nearLimit: number;
-  withinLimit: number;
-  total: number;
-};
-
 export type BudgetByDepartmentRow = {
   departmentReference: string;
   departmentName: string;
@@ -76,3 +68,14 @@ export type BudgetListSortField =
 export type BudgetListSortOrder = 'ASC' | 'DESC';
 
 export type BudgetHealthFilter = 'over_budget' | 'near_limit' | 'within_limit';
+
+export type BudgetForecastResponse = {
+  hasBudget: boolean;
+  year?: number;
+  amountLimit?: number;
+  committedAmount?: number;
+  utilizationPercent?: number;
+  monthlyBurnRate?: number;
+  projectedYearEndCommitted?: number;
+  projectedOverrun?: boolean;
+};

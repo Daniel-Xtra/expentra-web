@@ -6,7 +6,6 @@ import { useRolesManagement } from '@/features/roles/hooks/use-roles-management'
 import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
-import { formatTotalLabel } from '@/shared/lib/pagination';
 
 export function RolesPage() {
   const access = useRolesAccess();
@@ -20,11 +19,7 @@ export function RolesPage() {
     <PageShell wide>
       <PageHeader
         title="Roles"
-        description={
-          roles.meta.total > 0
-            ? `${formatTotalLabel(roles.meta.total, 'role')} · configure permissions and access`
-            : 'Configure roles and permission assignments.'
-        }
+        description="Configure roles and permission assignments."
         actions={
           access.canCreateRoles ? (
             <Button className="h-11 font-normal text-sm px-7 bg-primary-500" onClick={roles.mutations.openCreateForm}>

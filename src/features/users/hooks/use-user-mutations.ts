@@ -2,16 +2,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
-import {
-  adminCreateUser,
-  adminUpdateUser,
-  exportUsers,
-} from '@/features/users/api';
+import { adminUpdateUser, exportUsers } from '@/features/users/api';
 import { NONE_VALUE } from '@/features/users/constants';
 import {
-  createUserSchema,
   editEmployeeSchema,
-  type CreateUserFormValues,
   type EditEmployeeFormValues,
 } from '@/features/users/schemas';
 import { handleMutationError } from '@/shared/api/form-errors';
@@ -22,23 +16,9 @@ import type { UserResponse } from '@/types/api';
 
 export function useUserMutations() {
   const queryClient = useQueryClient();
-  const [showCreateUser, setShowCreateUser] = useState(false);
   const [editingUser, setEditingUser] = useState<UserResponse | null>(null);
   const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
   const [exporting, setExporting] = useState(false);
-
-  const createUserForm = useForm<CreateUserFormValues>({
-    resolver: zodResolver(createUserSchema),
-    defaultValues: {
-      email: '',
-      firstName: '',
-      lastName: '',
-      password: '',
-      confirmPassword: '',
-      roleReference: NONE_VALUE,
-      departmentReference: NONE_VALUE,
-    },
-  });
 
   const editEmployeeForm = useForm<EditEmployeeFormValues>({
     resolver: zodResolver(editEmployeeSchema),
@@ -46,30 +26,6 @@ export function useUserMutations() {
   });
 
   const invalidateUsers = () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-
-  const createUserMutation = useMutation({
-    mutationFn: (values: CreateUserFormValues) =>
-      adminCreateUser({
-        email: values.email,
-        firstName: values.firstName,
-        lastName: values.lastName,
-        password: values.password,
-        roleReference: values.roleReference === NONE_VALUE ? undefined : values.roleReference,
-        departmentReference:
-          values.departmentReference === NONE_VALUE ? null : values.departmentReference,
-      }),
-    onSuccess: async () => {
-      toastSuccess('Employee created');
-      createUserForm.reset();
-      setShowCreateUser(false);
-      await invalidateUsers();
-    },
-    onError: (err) =>
-      handleMutationError(err, {
-        setError: createUserForm.setError,
-        fallback: 'Failed to create employee',
-      }),
-  });
 
   const updateUserMutation = useMutation({
     mutationFn: ({
@@ -85,11 +41,25 @@ export function useUserMutations() {
       displayName?: string;
     }) => adminUpdateUser(reference, { roleReference, departmentReference, isActive }),
     onSuccess: async (_data, variables) => {
-      toastSuccess(
-        variables.displayName
-          ? `${variables.displayName} updated successfully`
-          : 'Employee updated successfully',
-      );
+      if (variables.isActive === false) {
+        toastSuccess(
+          variables.displayName
+            ? `${variables.displayName} deactivated`
+            : 'Employee deactivated',
+        );
+      } else if (variables.isActive === true) {
+        toastSuccess(
+          variables.displayName
+            ? `${variables.displayName} activated`
+            : 'Employee activated',
+        );
+      } else {
+        toastSuccess(
+          variables.displayName
+            ? `${variables.displayName} updated successfully`
+            : 'Employee updated successfully',
+        );
+      }
       setEditingUser(null);
       await invalidateUsers();
     },
@@ -113,19 +83,6 @@ export function useUserMutations() {
     },
     onError: (err) => handleMutationError(err, { fallback: 'Failed to deactivate employees' }),
   });
-
-  const openCreateUserForm = () => {
-    createUserForm.reset({
-      email: '',
-      firstName: '',
-      lastName: '',
-      password: '',
-      confirmPassword: '',
-      roleReference: NONE_VALUE,
-      departmentReference: NONE_VALUE,
-    });
-    setShowCreateUser(true);
-  };
 
   const openEditUser = (user: UserResponse) => {
     setEditingUser(user);
@@ -158,18 +115,13 @@ export function useUserMutations() {
   };
 
   return {
-    showCreateUser,
-    setShowCreateUser,
     editingUser,
     setEditingUser,
     selectedUsers,
     exporting,
-    createUserForm,
     editEmployeeForm,
-    createUserMutation,
     updateUserMutation,
     bulkDeactivateMutation,
-    openCreateUserForm,
     openEditUser,
     handleExportUsers,
     toggleUserSelection,

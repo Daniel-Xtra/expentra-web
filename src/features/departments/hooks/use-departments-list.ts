@@ -2,19 +2,34 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import { useState } from 'react';
 import {
   exportDepartments,
-  fetchDepartmentStatusCounts,
   listDepartments,
   type ListDepartmentsParams,
 } from '@/features/departments/api';
-import { resolveDepartmentListFilter } from '@/features/departments/components/DepartmentStatusSummary';
 import { invalidateDepartments, queryKeys } from '@/shared/api/query-keys';
 import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { DEFAULT_PAGE_SIZE } from '@/shared/lib/pagination';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
-import type { DepartmentListSortField } from '@/types/api';
+import type { DepartmentListSortField, DepartmentResponse } from '@/types/api';
+import type { DepartmentOverviewStats } from '@/features/departments/components/DepartmentOverviewCard';
 
 export const DEPARTMENTS_ALL_VALUE = 'all';
 export const DEPARTMENTS_CURRENT_YEAR = new Date().getFullYear();
+
+export function buildDepartmentOverviewStats(
+  departments: DepartmentResponse[],
+  total: number,
+): DepartmentOverviewStats {
+  const activeCount = departments.filter((department) => department.isActive).length;
+  const withManagerCount = departments.filter((department) => department.hasManager).length;
+
+  return {
+    total: total || departments.length,
+    activeCount,
+    inactiveCount: departments.length - activeCount,
+    withManagerCount,
+    isPartial: total > departments.length,
+  };
+}
 
 export function useDepartmentsList() {
   const queryClient = useQueryClient();
@@ -25,8 +40,6 @@ export function useDepartmentsList() {
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
   const [page, setPage] = useState(1);
 
-  const listFilterParams = resolveDepartmentListFilter(statusFilter);
-
   const listParams: ListDepartmentsParams = {
     page,
     limit: DEFAULT_PAGE_SIZE,
@@ -34,7 +47,6 @@ export function useDepartmentsList() {
     year: DEPARTMENTS_CURRENT_YEAR,
     sortBy,
     sortOrder,
-    ...listFilterParams,
   };
 
   const departmentsQuery = useQuery({
@@ -47,11 +59,6 @@ export function useDepartmentsList() {
     }),
     queryFn: () => listDepartments(listParams),
     placeholderData: keepPreviousData,
-  });
-
-  const statusCountsQuery = useQuery({
-    queryKey: queryKeys.departments.statusCounts(DEPARTMENTS_CURRENT_YEAR),
-    queryFn: () => fetchDepartmentStatusCounts(DEPARTMENTS_CURRENT_YEAR),
   });
 
   const exportMutation = useMutation({
@@ -73,7 +80,6 @@ export function useDepartmentsList() {
     setPage,
     listParams,
     departmentsQuery,
-    statusCountsQuery,
     exportMutation,
     invalidateDepartments: () => invalidateDepartments(queryClient),
   };

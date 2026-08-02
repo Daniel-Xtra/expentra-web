@@ -11,7 +11,7 @@ import {
   toUpdateDepartmentPayload,
   type DepartmentFormValues,
 } from '@/features/departments/department-form';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { AppConfirmModal } from '@/shared/reusable/AppConfirmModal';
 import { invalidateDepartments, queryKeys } from '@/shared/api/query-keys';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
 import { deleteDepartment, getDepartment, updateDepartment } from '../api';
@@ -103,7 +103,7 @@ export function DepartmentDetailPage() {
             onSubmit={editForm.handleSubmit((values) => updateMutation.mutateAsync(values))}
           />
 
-          <ConfirmDialog
+          <AppConfirmModal
             open={showDelete}
             onOpenChange={setShowDelete}
             title="Delete department"

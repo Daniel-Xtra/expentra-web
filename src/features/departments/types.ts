@@ -3,6 +3,7 @@ export type DepartmentManagerHistoryUserRef = {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
+  avatarUrl?: string | null;
 };
 
 export type DepartmentManagerHistoryResponse = {
@@ -30,16 +31,6 @@ export type DepartmentResponse = {
   metadata?: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
-};
-
-export type DepartmentStatusCounts = {
-  total: number;
-  active: number;
-  inactive: number;
-  missingManager: number;
-  overBudget: number;
-  nearLimit: number;
-  withinLimit: number;
 };
 
 export type DepartmentListSortField =

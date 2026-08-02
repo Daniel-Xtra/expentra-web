@@ -1,4 +1,11 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios';
+import {
+  handleSuspendedAuthFailure,
+  isAccountSuspendedError,
+  redirectToSuspendedAccount,
+  shouldBlockSuspendedApiRequests,
+  shouldSkipSuspendedAuthBootstrap,
+} from '@/shared/api/auth-errors';
 import type { ApiResponse } from '@/types/api';
 import { deepCamelCaseKeys } from '@/shared/api/transform';
 
@@ -8,10 +15,6 @@ const AUTH_CHANNEL_NAME = 'expentra-auth';
 const REFRESH_LOCK_KEY = 'expentra:refresh-lock';
 const REFRESH_LOCK_TTL_MS = 15_000;
 const REFRESH_RESULT_KEY = 'expentra:refresh-result';
-
-// Remove legacy tokens from sessionStorage (refresh is httpOnly cookie only).
-sessionStorage.removeItem('expentra_access_token');
-sessionStorage.removeItem('expentra_refresh_token');
 
 let accessToken: string | null = null;
 let refreshPromise: Promise<string | null> | null = null;
@@ -133,7 +136,10 @@ function isAuthBypassRequest(url?: string): boolean {
   return Boolean(
     url?.includes('/auth/sign-in') ||
       url?.includes('/auth/sign-up') ||
-      url?.includes('/auth/tokens/refresh'),
+      url?.includes('/auth/sign-out') ||
+      url?.includes('/auth/tokens/refresh') ||
+      url?.includes('/auth/sso/exchange') ||
+      url?.includes('/auth/sso/status'),
   );
 }
 
@@ -161,45 +167,6 @@ function clearRefreshLock(tabId: string): void {
   if (lock?.tabId === tabId) {
     localStorage.removeItem(REFRESH_LOCK_KEY);
   }
-}
-
-function waitForCrossTabRefresh(tabId: string): Promise<string | null> {
-  return new Promise((resolve) => {
-    const timeout = window.setTimeout(() => {
-      window.removeEventListener('storage', onStorage);
-      resolve(null);
-    }, REFRESH_LOCK_TTL_MS);
-
-    function onStorage(event: StorageEvent): void {
-      if (event.key !== REFRESH_RESULT_KEY || !event.newValue) {
-        return;
-      }
-
-      try {
-        const payload = JSON.parse(event.newValue) as {
-          tabId: string;
-          accessToken: string | null;
-        };
-        if (payload.tabId === tabId) {
-          return;
-        }
-        window.clearTimeout(timeout);
-        window.removeEventListener('storage', onStorage);
-        if (payload.accessToken) {
-          setAccessToken(payload.accessToken);
-          resolve(payload.accessToken);
-        } else {
-          resolve(null);
-        }
-      } catch {
-        window.clearTimeout(timeout);
-        window.removeEventListener('storage', onStorage);
-        resolve(null);
-      }
-    }
-
-    window.addEventListener('storage', onStorage);
-  });
 }
 
 const tabId =
@@ -233,6 +200,10 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  if (shouldBlockSuspendedApiRequests()) {
+    return Promise.reject(new axios.CanceledError('Account suspended'));
+  }
+
   if (!isAuthBypassRequest(config.url) && isAccessTokenExpired(accessToken)) {
     await refreshAccessToken();
   }
@@ -249,16 +220,25 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 });
 
 export async function refreshAccessToken(): Promise<string | null> {
+  if (shouldSkipSuspendedAuthBootstrap()) {
+    return null;
+  }
+
   if (refreshPromise) {
     return refreshPromise;
   }
 
   const activeLock = readRefreshLock();
-  if (activeLock && activeLock.until > Date.now() && activeLock.tabId !== tabId) {
-    return waitForCrossTabRefresh(tabId);
+  if (activeLock && activeLock.tabId !== tabId) {
+    // Foreign/stale lock (common after a reload mid-refresh). Do not block
+    // bootstrap for the full TTL — the API allows a short reuse grace window.
+    localStorage.removeItem(REFRESH_LOCK_KEY);
+  } else if (activeLock && activeLock.until <= Date.now()) {
+    localStorage.removeItem(REFRESH_LOCK_KEY);
   }
 
   refreshPromise = (async () => {
+    const hadActiveSession = Boolean(accessToken);
     writeRefreshLock(tabId);
     try {
       const { data } = await api.post<ApiResponse<{ accessToken: string }>>(
@@ -286,12 +266,20 @@ export async function refreshAccessToken(): Promise<string | null> {
         accessToken: token,
       } satisfies AuthChannelMessage);
       return token;
-    } catch {
+    } catch (error) {
       localStorage.setItem(
         REFRESH_RESULT_KEY,
         JSON.stringify({ tabId, accessToken: null }),
       );
-      notifySessionExpired();
+      if (isAccountSuspendedError(error)) {
+        if (hadActiveSession) {
+          redirectToSuspendedAccount();
+        } else {
+          notifySessionExpired();
+        }
+      } else {
+        notifySessionExpired();
+      }
       return null;
     } finally {
       clearRefreshLock(tabId);
@@ -333,6 +321,13 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     normalizeErrorPayload(error);
 
+    if (isAccountSuspendedError(error)) {
+      const hadActiveSession = Boolean(accessToken);
+      setAccessToken(null);
+      handleSuspendedAuthFailure(hadActiveSession);
+      return Promise.reject(error);
+    }
+
     const original = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
@@ -360,113 +355,14 @@ api.interceptors.response.use(
 
 if (typeof document !== 'undefined') {
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible' && isAccessTokenExpired()) {
+    if (
+      document.visibilityState === 'visible' &&
+      !shouldSkipSuspendedAuthBootstrap() &&
+      isAccessTokenExpired()
+    ) {
       void refreshAccessToken();
     }
   });
 }
 
-const HTTP_STATUS_MESSAGES: Record<number, string> = {
-  400: 'We could not process that request. Please check your input and try again.',
-  401: 'Your session has expired. Please sign in again.',
-  403: 'You do not have permission to perform this action.',
-  404: 'The requested item could not be found.',
-  408: 'The request took too long. Please try again.',
-  409: 'Something changed while you were working. Refresh the page and try again.',
-  422: 'We could not process that request. Please check your input and try again.',
-  429: 'Too many requests. Please wait a moment and try again.',
-  500: 'Something went wrong on our end. Please try again.',
-  502: 'The server is temporarily unavailable. Please try again in a moment.',
-  503: 'The service is temporarily unavailable. Please try again shortly.',
-  504: 'The server took too long to respond. Please try again.',
-};
-
-function isTechnicalClientMessage(message: string): boolean {
-  const trimmed = message.trim();
-  return (
-    /^Request failed with status code \d+$/i.test(trimmed) ||
-    trimmed === 'Network Error' ||
-    /^timeout of \d+ms exceeded$/i.test(trimmed) ||
-    trimmed === 'ERR_NETWORK' ||
-    trimmed === 'Failed to fetch'
-  );
-}
-
-function messageForHttpStatus(status: number): string | undefined {
-  if (HTTP_STATUS_MESSAGES[status]) {
-    return HTTP_STATUS_MESSAGES[status];
-  }
-  if (status >= 500) {
-    return HTTP_STATUS_MESSAGES[500];
-  }
-  if (status >= 400) {
-    return 'We could not complete that request. Please try again.';
-  }
-  return undefined;
-}
-
-export function isServerUnavailableError(error: unknown): boolean {
-  if (!axios.isAxiosError(error)) {
-    return false;
-  }
-
-  const status = error.response?.status;
-  if (status !== undefined) {
-    return status >= 500;
-  }
-
-  return true;
-}
-
-export function getApiErrorMessage(error: unknown, fallback = 'Something went wrong'): string {
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    const payload = error.response?.data as ApiResponse<unknown> | undefined;
-    const apiMessage =
-      typeof payload?.message === 'string' ? payload.message.trim() : '';
-
-    if (status === 429) {
-      return apiMessage || HTTP_STATUS_MESSAGES[429]!;
-    }
-
-    if (apiMessage && !isTechnicalClientMessage(apiMessage)) {
-      return apiMessage;
-    }
-
-    if (status !== undefined) {
-      const statusMessage = messageForHttpStatus(status);
-      if (statusMessage) {
-        return statusMessage;
-      }
-    }
-
-    if (!error.response) {
-      if (error.code === 'ECONNABORTED' || error.message.toLowerCase().includes('timeout')) {
-        return HTTP_STATUS_MESSAGES[504]!;
-      }
-      return 'Unable to reach the server. Check your connection and try again.';
-    }
-
-    if (isTechnicalClientMessage(error.message)) {
-      return fallback;
-    }
-
-    return error.message;
-  }
-
-  if (error instanceof Error) {
-    if (isTechnicalClientMessage(error.message)) {
-      return fallback;
-    }
-    return error.message;
-  }
-
-  if (typeof error === 'string' && error.trim()) {
-    if (isTechnicalClientMessage(error)) {
-      return fallback;
-    }
-    return error;
-  }
-
-  return fallback;
-}
+export { getApiErrorMessage, isServerUnavailableError } from '@/shared/api/api-errors';

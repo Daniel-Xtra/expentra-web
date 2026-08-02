@@ -5,7 +5,8 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { checkExpenseDuplicate, fetchExpensePolicyHints } from '@/features/expenses/api';
 import {
-  expenseFormSchema,
+  createExpenseFormSchema,
+  getMinIncurredDate,
   toExpenseSubmitPayload,
   type ExpenseFormSubmitValues,
   type ExpenseFormValues,
@@ -21,14 +22,15 @@ type UseExpenseFormOptions = {
 export function useExpenseForm({ defaultValues, expenseReference }: UseExpenseFormOptions = {}) {
   const { authorization } = useAuth();
   const [duplicateMessage, setDuplicateMessage] = useState<string | null>(null);
+  const minIncurredDate = getMinIncurredDate();
 
   const form = useForm<ExpenseFormValues>({
-    resolver: zodResolver(expenseFormSchema),
+    resolver: zodResolver(createExpenseFormSchema(minIncurredDate)),
     defaultValues: {
       title: '',
       description: '',
       amountNaira: '',
-      category: 'OTHER',
+      category: 'OTHERS',
       incurredAt: new Date().toISOString().slice(0, 10),
       ...defaultValues,
     },
@@ -94,6 +96,7 @@ export function useExpenseForm({ defaultValues, expenseReference }: UseExpenseFo
     department: authorization?.department ?? null,
     activePolicyHint,
     duplicateMessage,
+    minIncurredDate,
     buildSubmitHandler,
   };
 }

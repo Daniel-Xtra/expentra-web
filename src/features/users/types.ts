@@ -6,6 +6,7 @@ export type UserResponse = {
   email: string;
   firstName?: string | null;
   lastName?: string | null;
+  avatarUrl?: string | null;
   isActive: boolean;
   isEmailVerified: boolean;
   deactivatedAt?: string | null;

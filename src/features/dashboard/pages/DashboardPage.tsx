@@ -18,10 +18,14 @@ import { queryKeys } from '@/shared/api/query-keys';
 import { CategorySpendOverTimeChart } from '@/features/dashboard/components/CategorySpendOverTimeChart';
 import { DashboardActionRequired } from '@/features/dashboard/components/DashboardActionRequired';
 import { DashboardBudgetCard } from '@/features/dashboard/components/DashboardBudgetCard';
-import { DashboardInsightsRow } from '@/features/dashboard/components/DashboardInsightsRow';
+import {
+  DashboardInsightsRow,
+  hasDashboardInsightsContent,
+} from '@/features/dashboard/components/DashboardInsightsRow';
+import { DashboardPolicyWarnings } from '@/features/dashboard/components/DashboardPolicyWarnings';
 import { DashboardPageToolbar } from '@/features/dashboard/components/DashboardPageToolbar';
 import { DashboardRecentExpenses } from '@/features/dashboard/components/DashboardRecentExpenses';
-import { formatGreetingDate, toLocalDateIso } from '@/features/dashboard/dashboard-utils';
+import { formatGreetingDate, formatDashboardPeriodCompactLabel, toLocalDateIso } from '@/features/dashboard/dashboard-utils';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
@@ -52,6 +56,7 @@ export function DashboardPage() {
   const [year, setYear] = useState(String(currentYear));
   const [month, setMonth] = useState(currentMonth);
   const [quarter, setQuarter] = useState(currentQuarter);
+  const [showInsights, setShowInsights] = useState(false);
 
   const dashboardQuery = buildDashboardQuery(year, periodMode, month, quarter);
   const firstName = formatUserName(user).split(' ')[0] || 'there';
@@ -59,6 +64,7 @@ export function DashboardPage() {
   const personalQuery = useQuery({
     queryKey: queryKeys.dashboard.personal(dashboardQuery),
     queryFn: () => fetchPersonalDashboard(dashboardQuery),
+    placeholderData: (previousData) => previousData,
   });
 
   const exportMutation = useMutation({
@@ -68,23 +74,26 @@ export function DashboardPage() {
   });
 
   const personal = personalQuery.data;
-
-  if (personalQuery.isLoading) {
-    return <LoadingState layout="dashboard" message="Loading dashboard…" />;
-  }
-
-  if (personalQuery.isError || !personal) {
-    return (
-      <ErrorState
-        message={(personalQuery.error as Error)?.message ?? 'Dashboard data is unavailable.'}
-        onRetry={() => void personalQuery.refetch()}
-        retrying={personalQuery.isFetching}
-      />
-    );
-  }
-
-  const hasSpendOverTime = personal.spendOverTime.some((row) => row.totalAmount > 0);
+  const isInitialLoading = personalQuery.isLoading && !personal;
   const today = new Date();
+
+  const headerActions = (
+    <div className="flex flex-wrap items-center gap-2">
+      <DashboardPageToolbar
+        year={year}
+        mode={periodMode}
+        month={month}
+        quarter={quarter}
+        onYearChange={setYear}
+        onModeChange={setPeriodMode}
+        onMonthChange={setMonth}
+        onQuarterChange={setQuarter}
+        onExport={() => exportMutation.mutate()}
+        exportPending={exportMutation.isPending}
+        canExport={caps.dashboard.export}
+      />
+    </div>
+  );
 
   return (
     <PageShell wide className="gap-6">
@@ -92,82 +101,104 @@ export function DashboardPage() {
         greeting={`${getGreeting()}, ${firstName}`}
         description={formatGreetingDate(today)}
         descriptionDateTime={toLocalDateIso(today)}
-        actions={
-          <DashboardPageToolbar
-            year={year}
-            mode={periodMode}
-            month={month}
-            quarter={quarter}
-            onYearChange={setYear}
-            onModeChange={setPeriodMode}
-            onMonthChange={setMonth}
-            onQuarterChange={setQuarter}
-            onExport={() => exportMutation.mutate()}
-            exportPending={exportMutation.isPending}
-            canExport={caps.dashboard.export}
+        actions={headerActions}
+      />
+      <p className="text-sm text-muted-foreground">
+        Your claims and spending. Team approvals are on Approvals; team budget on Department
+        overview.
+      </p>
+
+      {isInitialLoading ? (
+        <LoadingState layout="dashboard" message="Loading dashboard…" />
+      ) : personalQuery.isError || !personal ? (
+        <ErrorState
+          message={(personalQuery.error as Error)?.message ?? 'Dashboard data is unavailable.'}
+          onRetry={() => void personalQuery.refetch()}
+          retrying={personalQuery.isFetching}
+        />
+      ) : (
+        <>
+          <DashboardActionRequired
+            drafts={personal.actionRequired.drafts}
+            rejected={personal.actionRequired.rejected}
           />
-        }
-      />
 
-      <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          label="Total spend"
-          value={formatNgn(personal.totalAmount)}
-          // hint={`${personal.expenseCount} ${pluralize(personal.expenseCount, 'expense')}`}
-          tone="primary"
-          icon={<CurrencyCircleDollarIcon className="size-4" weight="duotone" />}
-        />
-        <StatCard
-          label="Pending reimbursement"
-          value={formatNgn(personal.pendingReimbursementAmount)}
-          // hint={`${personal.pendingReimbursementCount} ${pluralize(personal.pendingReimbursementCount, 'claim')}`}
-          tone="warning"
-          icon={<WalletIcon className="size-4" weight="duotone" />}
-        />
-        <StatCard
-          label="In approval"
-          value={formatNgn(personal.inApprovalAmount)}
-          // hint={`${personal.inApprovalCount} ${pluralize(personal.inApprovalCount, 'claim')}`}
-          tone="default"
-          icon={<HourglassMediumIcon className="size-4" weight="duotone" />}
-          className="sm:col-span-2 lg:col-span-1"
-        />
-      </section>
+          <DashboardPolicyWarnings warnings={personal.policyWarnings ?? []} />
 
-      <DashboardActionRequired
-        drafts={personal.actionRequired.drafts}
-        rejected={personal.actionRequired.rejected}
-      />
+          <section aria-label="Summary" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <StatCard
+              label={`Spend · ${formatDashboardPeriodCompactLabel(periodMode, year, month, quarter)}`}
+              value={formatNgn(personal.totalAmount)}
+              tone="primary"
+              icon={<CurrencyCircleDollarIcon className="size-4" weight="duotone" />}
+            />
+            <StatCard
+              label="In approval"
+              value={formatNgn(personal.inApprovalAmount)}
+              tone="default"
+              icon={<HourglassMediumIcon className="size-4" weight="duotone" />}
+            />
+            <StatCard
+              label="Pending reimbursement"
+              value={formatNgn(personal.pendingReimbursementAmount)}
+              tone="warning"
+              icon={<WalletIcon className="size-4" weight="duotone" />}
+              className="sm:col-span-2 lg:col-span-1"
+            />
+          </section>
 
-      <DataCard title="Spend over time" className="w-full">
-        {hasSpendOverTime ? (
-          <CategorySpendOverTimeChart rows={personal.spendOverTime} />
-        ) : (
-          <EmptyState
-            compact
-            title="No spending in this period"
-            description="Create an expense to see category trends."
-            action={
-              caps.expense.create ? (
-                <Button className="h-11 font-normal text-sm px-7 bg-primary-500" asChild>
-                  <Link to="/expenses/new">Create expense</Link>
-                </Button>
-              ) : undefined
-            }
-          />
-        )}
-      </DataCard>
+          <DataCard title="Spend over time" className="w-full">
+            {personal.spendOverTime.some((row) => row.totalAmount > 0) ? (
+              <CategorySpendOverTimeChart rows={personal.spendOverTime} />
+            ) : (
+              <EmptyState
+                compact
+                title="No spending in this period"
+                description="Create an expense to see category trends."
+                action={
+                  caps.expense.create ? (
+                    <Button className="h-11 bg-primary-500 px-7 text-sm font-normal" asChild>
+                      <Link to="/expenses/new">Create expense</Link>
+                    </Button>
+                  ) : undefined
+                }
+              />
+            )}
+          </DataCard>
 
-      <DashboardInsightsRow
-        trend={personal.trend}
-        avgDaysToReimbursement={personal.avgDaysToReimbursement}
-        reimbursedCount={personal.reimbursementStats.reimbursedCount}
-        currentTotalAmount={personal.totalAmount}
-      />
+          {caps.dashboard.read &&
+          hasDashboardInsightsContent({
+            trend: personal.trend,
+            avgDaysToReimbursement: personal.avgDaysToReimbursement,
+            reimbursedCount: personal.reimbursementStats.reimbursedCount,
+            currentTotalAmount: personal.totalAmount,
+          }) ? (
+            <div className="space-y-3">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-muted-foreground"
+                onClick={() => setShowInsights((current) => !current)}
+              >
+                {showInsights ? 'Hide insights' : 'More insights'}
+              </Button>
+              {showInsights ? (
+                <DashboardInsightsRow
+                  trend={personal.trend}
+                  avgDaysToReimbursement={personal.avgDaysToReimbursement}
+                  reimbursedCount={personal.reimbursementStats.reimbursedCount}
+                  currentTotalAmount={personal.totalAmount}
+                />
+              ) : null}
+            </div>
+          ) : null}
 
-      <DashboardBudgetCard />
+          <DashboardBudgetCard />
 
-      <DashboardRecentExpenses expenses={personal.recentExpenses} compact />
+          <DashboardRecentExpenses expenses={personal.recentExpenses} compact />
+        </>
+      )}
     </PageShell>
   );
 }

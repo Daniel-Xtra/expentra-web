@@ -3,6 +3,7 @@ import axios from 'axios';
 import type { ReactNode } from 'react';
 import { Toaster } from '@/components/ui/sonner';
 import { AuthProvider } from '@/features/auth/components/auth-provider';
+import { IdleSessionGuard } from '@/features/auth/components/IdleSessionGuard';
 import { PageMetadataProvider } from '@/shared/context/page-metadata-context';
 
 const queryClient = new QueryClient({
@@ -23,9 +24,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <IdleSessionGuard />
         <PageMetadataProvider>
           {children}
-          <Toaster richColors closeButton position="top-right" />
+          <Toaster />
         </PageMetadataProvider>
       </AuthProvider>
     </QueryClientProvider>

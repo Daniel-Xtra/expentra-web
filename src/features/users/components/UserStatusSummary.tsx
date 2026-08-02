@@ -10,6 +10,15 @@ type UserStatusSummaryProps = {
   isLoading?: boolean;
 };
 
+export function resolveUserListFilter(
+  value: string,
+): Pick<ListUsersParams, 'isActive' | 'unassignedDepartment'> {
+  if (value === 'active') return { isActive: true };
+  if (value === 'inactive') return { isActive: false };
+  if (value === 'unassigned') return { unassignedDepartment: true };
+  return {};
+}
+
 export function UserStatusSummary({
   counts,
   activeFilter,
@@ -63,13 +72,4 @@ export function UserStatusSummary({
       })}
     </div>
   );
-}
-
-export function resolveUserListFilter(
-  value: string,
-): Pick<ListUsersParams, 'isActive' | 'unassignedDepartment'> {
-  if (value === 'active') return { isActive: true };
-  if (value === 'inactive') return { isActive: false };
-  if (value === 'unassigned') return { unassignedDepartment: true };
-  return {};
 }

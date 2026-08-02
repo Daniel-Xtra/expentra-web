@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { canAccess } from '@/shared/lib/capabilities';
+import { ACCESS_REVIEW_ACCESS } from '@/shared/navigation';
 
 function useCaps() {
   const { authorization } = useAuth();
@@ -58,7 +59,6 @@ export function useActionCapabilities() {
         read: canAccess(caps, 'role:read'),
       },
       user: {
-        create: canAccess(caps, 'user:create'),
         update: canAccess(caps, 'user:update'),
         read: canAccess(caps, 'user:read'),
         export: canAccess(caps, 'user:read'),
@@ -97,6 +97,10 @@ export function useActionCapabilities() {
       audit: {
         read: canAccess(caps, 'audit:read'),
         export: canAccess(caps, 'audit:read'),
+      },
+      accessReview: {
+        read: canAccess(caps, ACCESS_REVIEW_ACCESS),
+        export: canAccess(caps, ACCESS_REVIEW_ACCESS),
       },
       delegation: {
         manage: canAccess(caps, [

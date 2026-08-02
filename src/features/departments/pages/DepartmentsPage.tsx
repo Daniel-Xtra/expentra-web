@@ -26,14 +26,22 @@ import {
 import { CreateDepartmentDialog } from '@/features/departments/components/DepartmentFormDialogs';
 import { DepartmentHealthBadge } from '@/features/departments/components/DepartmentHealthBadge';
 import { DepartmentOverviewCard } from '@/features/departments/components/DepartmentOverviewCard';
-import { DepartmentStatusBadge } from '@/features/departments/components/DepartmentStatusBadge';
-import { DepartmentStatusSummary } from '@/features/departments/components/DepartmentStatusSummary';
+import { StatusPill } from '@/shared/components/StatusPill';
 import {
   departmentFormSchema,
   NO_MANAGER_VALUE,
   type DepartmentFormValues,
 } from '@/features/departments/department-form';
 import {
+  DEFAULT_PAGE_SIZE,
+  resolvePaginationMeta,
+  shouldShowPagination,
+} from '@/shared/lib/pagination';
+import { formatDate } from '@/shared/utils/format';
+import { formatUserName } from '@/shared/utils/user';
+import type { DepartmentListSortField } from '@/types/api';
+import {
+  buildDepartmentOverviewStats,
   DEPARTMENTS_ALL_VALUE,
   useDepartmentsList,
 } from '@/features/departments/hooks/use-departments-list';
@@ -41,23 +49,12 @@ import { useCreateDepartmentMutation } from '@/features/departments/hooks/use-de
 import { DataCard } from '@/shared/components/DataCard';
 import { FilterCard } from '@/shared/components/FilterCard';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { ErrorState } from '@/shared/components/ErrorState';
-import { FormField } from '@/shared/components/FormField';
-import { SearchField } from '@/shared/components/SearchField';
-import { LoadingState } from '@/shared/components/LoadingState';
+import { SearchInput } from '@/shared/components/SearchInput';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 import { TablePagination } from '@/shared/components/TablePagination';
-import {
-  DEFAULT_PAGE_SIZE,
-  formatTotalLabel,
-  resolvePaginationMeta,
-  shouldShowPagination,
-} from '@/shared/lib/pagination';
-import { formatDate } from '@/shared/utils/format';
-import { formatUserName } from '@/shared/utils/user';
-import type { DepartmentListSortField } from '@/types/api';
 
 const sortOptions: Array<{ value: DepartmentListSortField; label: string }> = [
   { value: 'name', label: 'Name' },
@@ -85,20 +82,6 @@ export function DepartmentsPage() {
     },
   });
 
-  if (list.departmentsQuery.isLoading && !list.departmentsQuery.data) {
-    return <LoadingState message="Loading departments…" />;
-  }
-
-  if (list.departmentsQuery.isError) {
-    return (
-      <ErrorState
-        message={(list.departmentsQuery.error as Error).message}
-        onRetry={() => void list.departmentsQuery.refetch()}
-        retrying={list.departmentsQuery.isFetching}
-      />
-    );
-  }
-
   const departments = list.departmentsQuery.data?.items ?? [];
   const meta = resolvePaginationMeta(
     list.departmentsQuery.data?.meta,
@@ -107,25 +90,16 @@ export function DepartmentsPage() {
     DEFAULT_PAGE_SIZE,
   );
 
-  const counts = list.statusCountsQuery.data;
-  const overviewStats = counts
-    ? {
-        total: counts.total,
-        activeCount: counts.active,
-        inactiveCount: counts.inactive,
-        withManagerCount: counts.total - counts.missingManager,
-      }
-    : null;
+  const overviewStats = buildDepartmentOverviewStats(departments, meta.total);
 
   const hasActiveFilters = list.search.trim() !== '' || list.statusFilter !== DEPARTMENTS_ALL_VALUE;
 
   return (
+    <QueryStatus query={list.departmentsQuery} loadingMessage="Loading departments…">
     <PageShell wide className="gap-6">
       <PageHeader
         title="Departments"
-        description={
-          meta.total > 0 ? formatTotalLabel(meta.total, 'department') : undefined
-        }
+        description="Manage departments, managers, and team structure."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {department.export ? (
@@ -149,20 +123,7 @@ export function DepartmentsPage() {
         }
       />
 
-      <DepartmentOverviewCard
-        stats={overviewStats}
-        isLoading={list.statusCountsQuery.isLoading && !counts}
-      />
-
-      <DepartmentStatusSummary
-        counts={counts}
-        activeFilter={list.statusFilter}
-        onFilterChange={(value) => {
-          list.setStatusFilter(value);
-          list.setPage(1);
-        }}
-        isLoading={list.statusCountsQuery.isLoading}
-      />
+      <DepartmentOverviewCard stats={overviewStats} />
 
       <CreateDepartmentDialog
         open={showForm}
@@ -173,7 +134,8 @@ export function DepartmentsPage() {
       />
 
       <FilterCard>
-        <SearchField
+        <SearchInput
+          field
           placeholder="Search departments by reference, name, or code"
           value={list.search}
           onValueChange={(value) => {
@@ -181,7 +143,7 @@ export function DepartmentsPage() {
             list.setPage(1);
           }}
         />
-        <FormField className="min-w-[160px]">
+        <div className="w-full sm:w-[160px]">
           <Select
             value={list.sortBy}
             onValueChange={(value) => {
@@ -200,8 +162,8 @@ export function DepartmentsPage() {
               ))}
             </SelectContent>
           </Select>
-        </FormField>
-        <FormField className="min-w-[120px]">
+        </div>
+        <div className="w-full sm:w-[120px]">
           <Select
             value={list.sortOrder}
             onValueChange={(value) => {
@@ -217,7 +179,7 @@ export function DepartmentsPage() {
               <SelectItem value="DESC">Descending</SelectItem>
             </SelectContent>
           </Select>
-        </FormField>
+        </div>
       </FilterCard>
 
       <DataCard
@@ -234,11 +196,6 @@ export function DepartmentsPage() {
               hasActiveFilters
                 ? 'Try adjusting your search or filters.'
                 : 'Add your first department to organize teams.'
-            }
-            action={
-              department.create ? (
-                <Button onClick={() => setShowForm(true)}>Add department</Button>
-              ) : undefined
             }
           />
         ) : (
@@ -312,7 +269,7 @@ export function DepartmentsPage() {
                     <DepartmentHealthBadge department={dept} />
                   </TableCell>
                   <TableCell>
-                    <DepartmentStatusBadge isActive={dept.isActive} />
+                    <StatusPill active={dept.isActive} />
                   </TableCell>
                   <TableCell className="text-muted-foreground">
                     {formatDate(dept.createdAt)}
@@ -331,5 +288,6 @@ export function DepartmentsPage() {
         )}
       </DataCard>
     </PageShell>
+    </QueryStatus>
   );
 }

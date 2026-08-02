@@ -19,12 +19,11 @@ import {
   type TemplateFormValues,
 } from '@/features/policies/policy-config';
 import { useCatalogFormResolver } from '@/features/policies/hooks/useCatalogFormResolver';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { AppConfirmModal } from '@/shared/reusable/AppConfirmModal';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { LoadingState } from '@/shared/components/LoadingState';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
-import { PolicyAdminGuide } from './PolicyAdminGuide';
 import type { PolicyCatalogField, PolicyCatalogResponse, PolicyCatalogTemplate } from '@/types/api';
 
 type PolicyCatalogPanelProps = {
@@ -36,8 +35,6 @@ type PolicyCatalogPanelProps = {
 
 export function PolicyCatalogPanel({
   catalog,
-  policyCount = 0,
-  activePolicyCount,
   onUseTemplate,
 }: PolicyCatalogPanelProps) {
   const { policy } = useActionCapabilities();
@@ -127,12 +124,12 @@ export function PolicyCatalogPanel({
     fieldDefinitions.length > 0 && availableDefinitions.length === 0;
   const fieldsCardDescription = useMemo(() => {
     if (fieldDefinitions.length === 0) {
-      return 'Engine field definitions are unavailable. Ensure the policy catalog API is reachable.';
+      return 'Field definitions unavailable. Check that the catalog API is reachable.';
     }
     if (allEngineFieldsConfigured) {
-      return `${fields.length} of ${fieldDefinitions.length} engine fields configured. Edit a field to customize labels, operators, and parameters.`;
+      return `${fields.length} of ${fieldDefinitions.length} fields configured · Labels and operators used in the policy builder`;
     }
-    return `${fields.length} of ${fieldDefinitions.length} engine fields configured. Add fields and tune how they appear in the policy builder.`;
+    return `${fields.length} of ${fieldDefinitions.length} fields configured · Labels and operators used in the policy builder`;
   }, [allEngineFieldsConfigured, fieldDefinitions.length, fields.length]);
 
   if (isInitialLoading) {
@@ -147,30 +144,16 @@ export function PolicyCatalogPanel({
 
   return (
     <div className="space-y-6">
-      <PolicyAdminGuide
-        fieldCount={fields.length}
-        fieldDefinitionCount={fieldDefinitions.length}
-        templateCount={templates.length}
-        policyCount={policyCount}
-        activePolicyCount={activePolicyCount}
-      />
-
       <DataCard
-        title="Rule condition fields"
+        title="Condition fields"
         description={fieldsCardDescription}
         actions={
-          policy.create ? (
+          policy.create &&
+          fieldDefinitions.length > 0 &&
+          !allEngineFieldsConfigured ? (
             <Button
-              size="sm"
+              className="h-11 font-normal text-sm px-7 bg-primary-500"
               onClick={openCreateField}
-              disabled={fieldDefinitions.length === 0 || allEngineFieldsConfigured}
-              title={
-                fieldDefinitions.length === 0
-                  ? 'Engine field definitions are not loaded'
-                  : allEngineFieldsConfigured
-                    ? 'All engine-supported fields are already in the catalog'
-                    : undefined
-              }
             >
               Add field
             </Button>
@@ -179,15 +162,8 @@ export function PolicyCatalogPanel({
       >
         {fields.length === 0 ? (
           <EmptyState
-            title="No condition fields configured"
-            description="Add fields from the supported engine list so admins can build policy conditions. Each field controls one type of check (amount, category, receipts, etc.)."
-            action={
-              availableDefinitions.length > 0 && policy.create ? (
-                <Button size="sm" onClick={openCreateField}>
-                  Add field
-                </Button>
-              ) : undefined
-            }
+            title="Add your first condition field"
+            description="Fields define what policies can check—amount, category, receipts, and similar."
           />
         ) : (
           <CatalogFieldsTable
@@ -207,19 +183,22 @@ export function PolicyCatalogPanel({
         )}
         {allEngineFieldsConfigured && fields.length > 0 && (
           <p className="mt-3 ml-3 text-xs text-muted-foreground">
-            All {fieldDefinitions.length} supported field types are in your catalog. Edit a field
-            to change labels or operators. Delete one only if you need to re-add it with different
-            settings.
+            All supported field types are configured. Edit to change labels or
+            operators.
           </p>
         )}
       </DataCard>
 
       <DataCard
-        title="Rule templates"
-        description="Quick-start presets for the policy builder. Create policies directly from a template."
+        title="Templates"
+        description="Reusable presets for creating policies."
         actions={
           policy.create ? (
-            <Button size="sm" onClick={openCreateTemplate} disabled={catalog.fields.length === 0}>
+            <Button
+              className="h-11 font-normal text-sm px-7 bg-primary-500"
+              onClick={openCreateTemplate}
+              disabled={catalog.fields.length === 0}
+            >
               Add template
             </Button>
           ) : undefined
@@ -230,8 +209,8 @@ export function PolicyCatalogPanel({
             title="No templates yet"
             description={
               catalog.fields.length === 0
-                ? 'Add at least one condition field above, then create templates such as “Receipt required above amount” or “Duplicate within 7 days”.'
-                : 'Templates help non-technical admins create policies quickly. Suggested starters: receipt required, weekend travel, monthly category cap, duplicate detection.'
+                ? 'Add a condition field first, then create templates.'
+                : 'Optional. Templates speed up creating common policies later.'
             }
           />
         ) : (
@@ -317,11 +296,11 @@ export function PolicyCatalogPanel({
         )}
       />
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(deleteFieldRef)}
         onOpenChange={(open) => !open && setDeleteFieldRef(null)}
         title="Delete condition field"
-        description="Remove this field from the policy builder? Existing policies that reference it will still evaluate using the engine key."
+        description="Remove this field from the policy builder? Existing policies that use this field continue to evaluate."
         confirmLabel="Delete"
         destructive
         loading={deleteFieldMutation.isPending}
@@ -332,11 +311,11 @@ export function PolicyCatalogPanel({
         }}
       />
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(deleteTemplateRef)}
         onOpenChange={(open) => !open && setDeleteTemplateRef(null)}
         title="Delete template"
-        description="Delete this quick template from the policy builder?"
+        description="Remove this template from the catalog?"
         confirmLabel="Delete"
         destructive
         loading={deleteTemplateMutation.isPending}

@@ -75,7 +75,13 @@ export function ExpenseSummaryCard({ expense }: ExpenseSummaryCardProps) {
           <MetaItem
             icon={<UserCircleIcon className="size-4" />}
             label="Submitter"
-            value={expense.user ? formatUserName(expense.user) : '—'}
+            value={
+              expense.user
+                ? `${formatUserName(expense.user)}${
+                    expense.user.isActive === false ? ' (inactive)' : ''
+                  }`
+                : '—'
+            }
           />
           <MetaItem
             icon={<CalendarBlankIcon className="size-4" />}

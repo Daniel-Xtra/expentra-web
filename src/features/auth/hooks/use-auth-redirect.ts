@@ -9,6 +9,10 @@ export function useAuthRedirectTarget(): string | null {
     return null;
   }
 
+  if (user && !user.isActive) {
+    return '/account-suspended';
+  }
+
   if (user && !user.isEmailVerified) {
     return '/verify-email';
   }

@@ -28,7 +28,6 @@ export const queryKeys = {
     catalog: () => ['departments', 'catalog'] as const,
     managedList: () => ['departments-managed-list'] as const,
     list: (params: Record<string, unknown>) => ['departments', 'list', params] as const,
-    statusCounts: (year: number) => ['departments', 'status-counts', year] as const,
     detail: (reference: string) => ['departments', reference] as const,
     managedDetail: (reference: string) => ['departments-managed', reference] as const,
     detailSummary: (reference: string, managed: boolean) =>
@@ -43,6 +42,8 @@ export const queryKeys = {
       [managed ? 'departments-managed' : 'departments', reference, 'manager-history', params] as const,
     budgetSummary: (reference: string, year: number | string, managed: boolean) =>
       [managed ? 'departments-managed' : 'departments', reference, 'budget-summary', year] as const,
+    budgetForecast: (reference: string, year: number | string, managed: boolean) =>
+      [managed ? 'departments-managed' : 'departments', reference, 'budget-forecast', year] as const,
     teamDashboard: (reference: string, year: number | string, managed: boolean) =>
       [managed ? 'departments-managed' : 'departments', reference, 'team-dashboard', year] as const,
   },
@@ -51,7 +52,7 @@ export const queryKeys = {
     list: (params: ListBudgetsParams, statusFilter: string, search: string) =>
       ['budgets', 'list', params, statusFilter, search] as const,
     organizationSummary: (year: number) => ['budgets', 'organization-summary', year] as const,
-    healthCounts: (year: number) => ['budgets', 'health-counts', year] as const,
+    organizationForecast: (year: number) => ['budgets', 'organization-forecast', year] as const,
     byDepartment: (year: number) => ['budgets', 'by-department', year] as const,
     meSummary: (year: number) => ['budgets', 'me', 'summary', year] as const,
   },
@@ -83,12 +84,12 @@ export const queryKeys = {
   approvals: {
     all: ['approvals'] as const,
     summary: () => ['approvals', 'summary'] as const,
-    queue: (page: number) => ['approvals', 'queue', page] as const,
+    queue: (params: Record<string, unknown>) => ['approvals', 'queue', params] as const,
   },
-  finance: {
-    all: ['finance'] as const,
-    summary: () => ['finance', 'summary'] as const,
-    queue: (page: number) => ['finance', 'queue', page] as const,
+  payouts: {
+    all: ['payouts'] as const,
+    summary: () => ['payouts', 'summary'] as const,
+    queue: (page: number) => ['payouts', 'queue', page] as const,
   },
   delegations: {
     all: ['delegations'] as const,
@@ -103,6 +104,7 @@ export const queryKeys = {
     preferences: () => ['notifications', 'preferences'] as const,
     unreadCount: () => ['notifications', 'unread-count'] as const,
   },
+
   audit: {
     all: ['audit-logs'] as const,
     list: (params: Record<string, unknown>) => ['audit-logs', 'list', params] as const,
@@ -113,13 +115,14 @@ export const queryKeys = {
   },
   dashboard: {
     personal: (params: Record<string, unknown>) => ['dashboard', 'personal', params] as const,
-    team: (params: Record<string, unknown>) => ['dashboard', 'team', params] as const,
   },
   reports: {
     summary: (params: Record<string, unknown>) => ['reports', 'summary', params] as const,
     category: (params: Record<string, unknown>) => ['reports', 'category', params] as const,
     department: (params: Record<string, unknown>) => ['reports', 'department', params] as const,
-    monthly: (year: number) => ['reports', 'monthly', year] as const,
+    monthly: (params: Record<string, unknown>) => ['reports', 'monthly', params] as const,
+    budgetsByDepartment: (year: number) =>
+      ['reports', 'budgets-by-department', year] as const,
   },
 } as const;
 
@@ -143,8 +146,8 @@ export async function invalidateApprovalsAndExpenses(queryClient: QueryClient) {
   await invalidateNotifications(queryClient);
 }
 
-export async function invalidateFinanceAndExpenses(queryClient: QueryClient) {
-  await queryClient.invalidateQueries({ queryKey: queryKeys.finance.all });
+export async function invalidatePayoutsAndExpenses(queryClient: QueryClient) {
+  await queryClient.invalidateQueries({ queryKey: queryKeys.payouts.all });
   await queryClient.invalidateQueries({ queryKey: queryKeys.expenses.all });
   await invalidateNotifications(queryClient);
 }

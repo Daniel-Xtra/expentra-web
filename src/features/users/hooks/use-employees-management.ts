@@ -10,9 +10,9 @@ import type { ViewMode } from '@/shared/components/ViewModeToggle';
 export function useEmployeesManagement(enabled: boolean) {
   const [viewMode, setViewMode] = useState<ViewMode>('card');
 
+  const mutations = useUserMutations();
   const usersList = useUsersList({ enabled });
   const userCatalog = useUserCatalogData(enabled);
-  const mutations = useUserMutations();
 
   const users = usersList.usersQuery.data?.items ?? [];
   const meta = resolvePaginationMeta(

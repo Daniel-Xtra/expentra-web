@@ -22,6 +22,7 @@ type AppSelectProps = {
   value?: string;
   defaultValue?: string;
   error?: boolean;
+  disabled?: boolean;
 };
 
 const triggerClassName = (error?: boolean, className?: string) =>
@@ -42,6 +43,7 @@ export default function AppSelect({
   value,
   defaultValue,
   error,
+  disabled,
 }: AppSelectProps) {
   return (
     <div>
@@ -52,6 +54,7 @@ export default function AppSelect({
         onValueChange={onChange}
         defaultValue={defaultValue}
         value={value}
+        disabled={disabled}
       >
         <SelectTrigger
           className={triggerClassName(error, className)}

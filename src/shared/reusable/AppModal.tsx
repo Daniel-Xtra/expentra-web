@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import Icon from './AppIcon';
+import { AppIcon } from './AppIcon';
 
 export type ModalProps = {
   title?: ReactNode;
@@ -49,42 +49,41 @@ export function AppModal({
       }}
       onEscapeKeyDown={(e) => e.preventDefault()}
       onPointerDown={(e) => e.stopPropagation()}
-      className={cn(className, 'dialog')}
+      className={cn('flex max-h-[min(90dvh,48rem)] flex-col overflow-hidden p-0', className)}
     >
-      <div className={hideHeader ? 'hidden' : 'block'}>
-        <DialogHeader className="sticky inset-x-0 top-0 flex h-[112px] items-center justify-between bg-neutral-100 px-8 py-10 sm:p-8">
+      {!hideHeader ? (
+        <DialogHeader className="flex min-h-[88px] shrink-0 items-center justify-between bg-neutral-100 px-4 py-5 sm:h-[112px] sm:px-8 sm:py-10">
           <div className="space-y-1">
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>{description}</DialogDescription>
           </div>
 
-          <div className="flex items-center gap-11 shrink-0">
+          <div className="flex shrink-0 items-center gap-11">
             {!hideHeaderExtra ? headerExtra : null}
-            <DialogClose aria-label="Close modal" >
-              <Icon icon="close" type="icons" format="png" className="size-6" />
+            <DialogClose aria-label="Close modal">
+              <AppIcon icon="close" type="icons" format="png" className="size-6" />
             </DialogClose>
           </div>
         </DialogHeader>
-      </div>
+      ) : null}
 
-      <div
-        className={cn(
-          'scrollbar-thin max-h-[53vh] overflow-y-auto p-6 font-sans sm:p-10 md:max-h-[60vh] lg:max-h-[55vh] xl:max-h-[60vh]',
-          hideFooter && 'xl:max-h-[80vh]',
-        )}
-      >
+      <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain [overflow-anchor:none] p-4 font-sans sm:p-6 lg:p-10">
         {content}
       </div>
 
-      <div className={hideFooter ? 'hidden' : 'block'}>
-        <DialogFooter className="sticky inset-x-0 bottom-0 m-0 flex flex-col-reverse gap-4 border-t-[0.5px] border-t-neutral-200 bg-white p-8 sm:flex-row">
+      {!hideFooter ? (
+        <DialogFooter className="m-0 shrink-0 flex-col-reverse gap-3 border-t-[0.5px] border-t-neutral-200 bg-white p-4 sm:flex-row sm:gap-4 sm:p-8">
           {actions ?? (
-            <Button type="button" className="h-14 w-full rounded-sm p-5 font-sans text-sm font-semibold" onClick={primaryFn}>
+            <Button
+              type="button"
+              className="h-14 w-full rounded-sm p-5 font-sans text-sm font-semibold"
+              onClick={primaryFn}
+            >
               {buttonText}
             </Button>
           )}
         </DialogFooter>
-      </div>
+      ) : null}
     </DialogContent>
   );
 }

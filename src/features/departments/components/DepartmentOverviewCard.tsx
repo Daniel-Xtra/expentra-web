@@ -42,32 +42,39 @@ function sharePercent(part: number, total: number) {
 }
 
 export function DepartmentOverviewCard({ stats, isLoading }: DepartmentOverviewCardProps) {
-  if (isLoading || !stats) {
+  if (isLoading) {
     return <OverviewSkeleton />;
   }
 
-  const activeRate = sharePercent(stats.activeCount, stats.total);
-  const managerRate = sharePercent(stats.withManagerCount, stats.total);
-  const partialHint = stats.isPartial ? 'Counts based on loaded departments' : undefined;
+  const resolved = stats ?? {
+    total: 0,
+    activeCount: 0,
+    inactiveCount: 0,
+    withManagerCount: 0,
+  };
+
+  const activeRate = sharePercent(resolved.activeCount, resolved.total);
+  const managerRate = sharePercent(resolved.withManagerCount, resolved.total);
+  const partialHint = resolved.isPartial ? 'Counts based on loaded departments' : undefined;
 
   return (
     <div className="grid gap-4 sm:grid-cols-3">
       <StatCard
         label="Total departments"
-        value={stats.total}
+        value={resolved.total}
         hint={
           partialHint ??
-          `${stats.activeCount} active · ${stats.inactiveCount} inactive`
+          `${resolved.activeCount} active · ${resolved.inactiveCount} inactive`
         }
         icon={<BuildingsIcon className="size-4" weight="duotone" />}
         tone="primary"
       />
       <StatCard
         label="Active departments"
-        value={stats.activeCount}
+        value={resolved.activeCount}
         hint={
           partialHint ??
-          (stats.total > 0
+          (resolved.total > 0
             ? `${activeRate}% currently accepting assignments`
             : 'No departments configured yet')
         }
@@ -76,15 +83,15 @@ export function DepartmentOverviewCard({ stats, isLoading }: DepartmentOverviewC
       />
       <StatCard
         label="With manager assigned"
-        value={stats.withManagerCount}
+        value={resolved.withManagerCount}
         hint={
           partialHint ??
-          (stats.total > 0
+          (resolved.total > 0
             ? `${managerRate}% have a designated lead`
             : 'Assign managers to improve accountability')
         }
         icon={<UsersThreeIcon className="size-4" weight="duotone" />}
-        tone={stats.withManagerCount > 0 ? 'default' : 'warning'}
+        tone={resolved.withManagerCount > 0 ? 'default' : 'warning'}
       />
     </div>
   );

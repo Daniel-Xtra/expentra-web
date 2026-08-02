@@ -1,6 +1,6 @@
 import type { DepartmentRef } from '@/shared/types/refs';
 
-export type ExpenseCategory = 'TRAVEL' | 'MEALS' | 'SUPPLIES' | 'OTHER';
+export type ExpenseCategory = 'TRAVEL' | 'MEALS' | 'SUPPLIES' | 'OTHERS';
 
 export type ExpenseListSortField =
   | 'createdAt'
@@ -53,12 +53,17 @@ export type ExpenseResponse = {
   rejectionReason?: string;
   approvalChain?: ExpenseApprovalChainStep[];
   canActOnApproval?: boolean;
+  budgetWouldExceed?: boolean;
+  requiresOverBudgetAcknowledgment?: boolean;
+  primaryReceiptObjectKey?: string | null;
   department?: DepartmentRef | null;
   user?: {
     reference: string;
     email: string;
     firstName?: string | null;
     lastName?: string | null;
+    avatarUrl?: string | null;
+    isActive?: boolean;
   } | null;
 };
 
@@ -69,7 +74,6 @@ export type ExpenseStatusCount = {
 
 export type ExpenseStatusCounts = {
   byStatus: ExpenseStatusCount[];
-  needsAction: number;
 };
 
 export type ExpensePolicyHint = {
@@ -127,6 +131,8 @@ export type ExpenseActivityItem = {
   metadata?: Record<string, unknown> | null;
 };
 
+import type { BudgetSummaryResponse } from '@/features/budgets/types';
+
 export type PolicyViolation = {
   policyReference: string;
   policyName: string;
@@ -141,10 +147,21 @@ export type PolicyEvaluationResult = {
   warningViolations: PolicyViolation[];
 };
 
+export type BudgetSubmitCheckResult = {
+  allowed: boolean;
+  wouldExceed: boolean;
+  projectedCommittedAmount: number;
+  summary: BudgetSummaryResponse | null;
+};
+
+export type ExpenseSubmitCheckResult = PolicyEvaluationResult & {
+  budget: BudgetSubmitCheckResult;
+};
+
 export type ReceiptResponse = {
   reference: string;
   fileName: string;
   mimeType: string;
   sizeBytes: number;
-  secureUrl?: string;
+  objectKey: string;
 };

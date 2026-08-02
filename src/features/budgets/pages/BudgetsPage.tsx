@@ -7,9 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  BudgetHealthSummary,
-} from '@/features/budgets/components/BudgetHealthSummary';
 import { BudgetOrgSummaryStrip } from '@/features/budgets/components/BudgetOrgSummaryStrip';
 import { BudgetFilters } from '@/features/budgets/components/BudgetFilters';
 import { BudgetsTable } from '@/features/budgets/components/BudgetsTable';
@@ -23,17 +20,15 @@ import {
   buildYearOptions,
 } from '@/features/budgets/constants';
 import { useBudgetMutations } from '@/features/budgets/hooks/use-budget-mutations';
-import { useBudgetsList } from '@/features/budgets/hooks/use-budgets-list';
+import { useBudgetCatalogData, useBudgetsList } from '@/features/budgets/hooks/use-budgets-list';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { ErrorState } from '@/shared/components/ErrorState';
-import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 import { TablePagination } from '@/shared/components/TablePagination';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import {
-  formatTotalLabel,
   resolvePaginationMeta,
   shouldShowPagination,
 } from '@/shared/lib/pagination';
@@ -45,20 +40,7 @@ export function BudgetsPage() {
     currentYear: list.currentYear,
     listParams: list.listParams,
   });
-
-  if (list.budgetsQuery.isLoading) {
-    return <LoadingState message="Loading budgets…" />;
-  }
-
-  if (list.budgetsQuery.isError) {
-    return (
-      <ErrorState
-        message={(list.budgetsQuery.error as Error).message}
-        onRetry={() => void list.budgetsQuery.refetch()}
-        retrying={list.budgetsQuery.isFetching}
-      />
-    );
-  }
+  const catalog = useBudgetCatalogData(mutations.showForm);
 
   const budgets = (list.budgetsQuery.data?.items ?? []).filter((budget) => {
     const term = list.search.trim().toLowerCase();
@@ -74,12 +56,11 @@ export function BudgetsPage() {
     return matchesSearch && matchesStatus;
   });
 
-  const departments = list.departmentsQuery.data?.items ?? [];
+  const departments = catalog.departments;
   const yearOptions = buildYearOptions(list.currentYear);
   const hasActiveFilters =
     list.search.trim() !== '' ||
-    list.statusFilter !== ALL_VALUE ||
-    list.healthFilter !== 'all';
+    list.statusFilter !== ALL_VALUE;
   const meta = resolvePaginationMeta(
     list.budgetsQuery.data?.meta,
     list.budgetsQuery.data?.items?.length ?? 0,
@@ -94,17 +75,17 @@ export function BudgetsPage() {
 
   const insightsLoading =
     list.orgSummaryQuery.isLoading ||
-    list.healthCountsQuery.isLoading ||
-    list.byDepartmentQuery.isLoading;
+    list.byDepartmentQuery.isLoading ||
+    list.orgForecastQuery.isLoading;
 
   const resetPage = () => list.setPage(1);
 
   return (
+    <QueryStatus query={list.budgetsQuery} loadingMessage="Loading budgets…">
     <PageShell wide className="gap-6">
       <PageHeader
         title="Budgets"
-        description={`Annual department limits and utilization for ${list.selectedYear}`}
-        meta={formatTotalLabel(meta.total, 'budget')}
+        description={`Set and monitor annual department budget limits for ${list.selectedYear}.`}
         actions={
           <div className="flex flex-wrap items-center gap-2">
             <Select
@@ -145,21 +126,11 @@ export function BudgetsPage() {
 
       <BudgetOrgSummaryStrip
         summary={list.orgSummaryQuery.data}
+        forecast={list.orgForecastQuery.data}
         departmentRows={departmentRows}
         budgetCount={meta.total}
         year={list.selectedYear}
         isLoading={insightsLoading}
-      />
-
-      <BudgetHealthSummary
-        counts={list.healthCountsQuery.data}
-        activeFilter={list.healthFilter}
-        onFilterChange={(value) => {
-          list.setHealthFilter(value);
-          resetPage();
-        }}
-        isLoading={list.healthCountsQuery.isLoading}
-        budgetCount={meta.total}
       />
 
       <BudgetFilters
@@ -202,11 +173,6 @@ export function BudgetsPage() {
                 ? 'Try adjusting your search or filters.'
                 : 'Create a budget to set department spending limits.'
             }
-            action={
-              budget.create ? (
-                <Button onClick={mutations.openCreateForm}>Add budget</Button>
-              ) : undefined
-            }
           />
         ) : (
           <BudgetsTable
@@ -225,10 +191,12 @@ export function BudgetsPage() {
         onOpenChange={mutations.setShowForm}
         form={mutations.createForm}
         loading={mutations.createMutation.isPending}
+        catalogLoading={catalog.isLoading}
         onSubmit={mutations.createForm.handleSubmit((values) =>
           mutations.createMutation.mutateAsync(values),
         )}
         departments={departments}
+        currentYear={list.currentYear}
       />
 
       <EditBudgetDialog
@@ -246,5 +214,6 @@ export function BudgetsPage() {
         })}
       />
     </PageShell>
+    </QueryStatus>
   );
 }

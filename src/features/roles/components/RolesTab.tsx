@@ -19,11 +19,10 @@ import {
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { FilterCard } from '@/shared/components/FilterCard';
-import { SearchField } from '@/shared/components/SearchField';
+import { SearchInput } from '@/shared/components/SearchInput';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { TablePagination } from '@/shared/components/TablePagination';
 import { shouldShowPagination } from '@/shared/lib/pagination';
-import { StatusPill } from '@/shared/components/StatusPill';
 import { formatRoleName } from '@/shared/utils/format';
 import type { PaginationMeta, RoleResponse } from '@/types/api';
 
@@ -69,7 +68,8 @@ export function RolesTab({
   return (
     <div className="space-y-4">
       <FilterCard>
-        <SearchField
+        <SearchInput
+          field
           placeholder="Search roles by reference, name, or description"
           value={search}
           onValueChange={onSearchChange}
@@ -107,7 +107,6 @@ export function RolesTab({
                 <TableHead>Reference</TableHead>
                 <TableHead>Roles</TableHead>
                 <TableHead>Permissions</TableHead>
-                <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -120,9 +119,6 @@ export function RolesTab({
                   <TableCell className="font-medium">{formatRoleName(role.name)}</TableCell>
                   <TableCell className="text-muted-foreground">
                     {role.permissionCount ?? 0}
-                  </TableCell>
-                  <TableCell>
-                    <StatusPill active />
                   </TableCell>
                   <TableCell className="text-right">
                     {hasRowActions ? (

@@ -15,10 +15,18 @@ export const expenseSortOptions: Array<{ value: ExpenseListSortField; label: str
 
 export function resolveInitialExpenseFilter(searchParams: URLSearchParams) {
   const status = searchParams.get('status');
-  if (status === 'DRAFT' || status === 'REJECTED') {
-    return 'needs_action';
+  if (!status || status === 'needs_action') {
+    return 'all';
   }
-  return status ?? 'all';
+  const allowed = new Set([
+    'DRAFT',
+    'SUBMITTED',
+    'UNDER_REVIEW',
+    'APPROVED',
+    'REJECTED',
+    'REIMBURSED',
+  ]);
+  return allowed.has(status) ? status : 'all';
 }
 
 export function buildExpenseListParams(
@@ -32,11 +40,7 @@ export function buildExpenseListParams(
     limit: DEFAULT_PAGE_SIZE,
     sortBy,
     sortOrder,
-    needsAction: filter === 'needs_action' ? true : undefined,
-    status:
-      filter !== 'all' && filter !== 'needs_action'
-        ? (filter as ExpenseStatus)
-        : undefined,
+    status: filter !== 'all' ? (filter as ExpenseStatus) : undefined,
   };
 }
 

@@ -7,8 +7,7 @@ import {
 } from '@/components/ui/select';
 import { sortOptions, statusFilterOptions } from '@/features/budgets/constants';
 import { FilterCard } from '@/shared/components/FilterCard';
-import { FormField } from '@/shared/components/FormField';
-import { SearchField } from '@/shared/components/SearchField';
+import { SearchInput } from '@/shared/components/SearchInput';
 import type { BudgetListSortField, BudgetListSortOrder } from '@/types/api';
 
 type BudgetFiltersProps = {
@@ -34,12 +33,13 @@ export function BudgetFilters({
 }: BudgetFiltersProps) {
   return (
     <FilterCard>
-      <SearchField
+      <SearchInput
+        field
         placeholder="Search by reference, department, or year"
         value={search}
         onValueChange={onSearchChange}
       />
-      <FormField className="w-full sm:w-[180px]">
+      <div className="w-full sm:w-[180px]">
         <Select value={statusFilter} onValueChange={onStatusFilterChange}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Status" />
@@ -52,8 +52,8 @@ export function BudgetFilters({
             ))}
           </SelectContent>
         </Select>
-      </FormField>
-      <FormField className="w-full sm:w-[180px]">
+      </div>
+      <div className="w-full sm:w-[180px]">
         <Select value={sortBy} onValueChange={(value) => onSortByChange(value as BudgetListSortField)}>
           <SelectTrigger className="w-full">
             <SelectValue placeholder="Sort by" />
@@ -66,8 +66,8 @@ export function BudgetFilters({
             ))}
           </SelectContent>
         </Select>
-      </FormField>
-      <FormField className="w-full sm:w-[140px]">
+      </div>
+      <div className="w-full sm:w-[140px]">
         <Select
           value={sortOrder}
           onValueChange={(value) => onSortOrderChange(value as BudgetListSortOrder)}
@@ -80,7 +80,7 @@ export function BudgetFilters({
             <SelectItem value="ASC">Low to high</SelectItem>
           </SelectContent>
         </Select>
-      </FormField>
+      </div>
     </FilterCard>
   );
 }

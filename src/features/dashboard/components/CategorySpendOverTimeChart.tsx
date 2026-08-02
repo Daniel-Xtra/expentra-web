@@ -10,44 +10,15 @@ import {
   YAxis,
 } from 'recharts';
 import { PeriodSpendingChart } from '@/features/dashboard/components/PeriodSpendingChart';
-import { CATEGORY_CHART_COLORS } from '@/features/reports/components/report-charts';
+import { CATEGORY_CHART_COLORS } from '@/features/reports/chart-colors';
+import {
+  formatNgnAxis,
+  getActiveChartCategories,
+  normalizeCategoryAmounts,
+} from '@/features/reports/spending-chart-utils';
 import { formatLabel } from '@/shared/utils/format';
 import { formatNgn } from '@/shared/utils/money';
 import type { DashboardSpendPeriodRow, ExpenseCategory } from '@/types/api';
-
-const ALL_CATEGORIES: ExpenseCategory[] = ['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHER'];
-
-function formatNgnAxis(kobo: number) {
-  const naira = kobo / 100;
-  if (naira >= 1_000_000) {
-    return `₦${(naira / 1_000_000).toFixed(1)}M`;
-  }
-  if (naira >= 1_000) {
-    return `₦${(naira / 1_000).toFixed(0)}K`;
-  }
-  return formatNgn(kobo);
-}
-
-function normalizeCategoryAmounts(
-  amounts?: Partial<Record<ExpenseCategory, number>> | Record<string, number>,
-): Partial<Record<ExpenseCategory, number>> {
-  if (!amounts) {
-    return {};
-  }
-
-  const result: Partial<Record<ExpenseCategory, number>> = {};
-  for (const [key, value] of Object.entries(amounts)) {
-    const category = key.toUpperCase() as ExpenseCategory;
-    if (!ALL_CATEGORIES.includes(category)) {
-      continue;
-    }
-    const amount = Number(value) || 0;
-    if (amount > 0) {
-      result[category] = (result[category] ?? 0) + amount;
-    }
-  }
-  return result;
-}
 
 type ChartPoint = {
   label: string;
@@ -118,18 +89,10 @@ export function CategorySpendOverTimeChart({
     [rows],
   );
 
-  const activeCategories = useMemo(() => {
-    const totals = new Map<ExpenseCategory, number>();
-    for (const row of normalizedRows) {
-      for (const category of ALL_CATEGORIES) {
-        const amount = row.categoryAmounts?.[category] ?? 0;
-        if (amount > 0) {
-          totals.set(category, (totals.get(category) ?? 0) + amount);
-        }
-      }
-    }
-    return ALL_CATEGORIES.filter((category) => (totals.get(category) ?? 0) > 0);
-  }, [normalizedRows]);
+  const activeCategories = useMemo(
+    () => getActiveChartCategories(normalizedRows),
+    [normalizedRows],
+  );
 
   const chartData = useMemo<ChartPoint[]>(
     () =>

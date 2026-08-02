@@ -8,12 +8,17 @@ import type {
   YearlyMonthlySpendingReport,
 } from '@/types/api';
 
+import type { ReportPeriodMode, ReportSpendMode } from './types';
+
 export type SpendingReportQuery = {
   year: number;
-  month: number;
+  periodMode?: ReportPeriodMode;
+  month?: number;
+  quarter?: number;
   departmentReference?: string;
   category?: string;
   includePipeline?: boolean;
+  mode?: ReportSpendMode;
 };
 
 export async function fetchSpendingSummary(
@@ -33,6 +38,7 @@ export type YearlySpendingQuery = {
   departmentReference?: string;
   category?: string;
   includePipeline?: boolean;
+  mode?: ReportSpendMode;
 };
 
 export async function fetchSpendingByMonth(
@@ -69,11 +75,9 @@ export async function fetchSpendingByDepartment(
 }
 
 export async function queueSpendingExcelExport(query: SpendingReportQuery): Promise<string> {
-  const result = await queueExport('/reports/spending/export/excel', query);
-  return result.message;
+  return queueExport('/reports/spending/export/excel', query);
 }
 
 export async function queueSpendingPdfExport(query: SpendingReportQuery): Promise<string> {
-  const result = await queueExport('/reports/spending/export/pdf', query);
-  return result.message;
+  return queueExport('/reports/spending/export/pdf', query);
 }

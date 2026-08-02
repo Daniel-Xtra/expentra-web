@@ -14,5 +14,5 @@ export * from '@/features/access-review/types';
 export * from '@/features/policies/types';
 export * from '@/features/dashboard/types';
 export * from '@/features/reports/types';
-export * from '@/features/finance/types';
+export * from '@/features/payouts/types';
 export * from '@/features/approvals/types';

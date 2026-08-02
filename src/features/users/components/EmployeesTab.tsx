@@ -10,19 +10,30 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { EmployeeActions, EmployeeCard } from '@/features/users/components/EmployeeCard';
-import { UserStatusSummary } from '@/features/users/components/UserStatusSummary';
+import {
+  UserStatusSummary,
+} from '@/features/users/components/UserStatusSummary';
+import { ALL_VALUE } from '@/features/users/constants';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { FilterCard } from '@/shared/components/FilterCard';
-import { SearchField } from '@/shared/components/SearchField';
+import { SearchInput } from '@/shared/components/SearchInput';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { TablePagination } from '@/shared/components/TablePagination';
 import { shouldShowPagination } from '@/shared/lib/pagination';
 import { StatusPill } from '@/shared/components/StatusPill';
 import { ViewModeToggle, type ViewMode } from '@/shared/components/ViewModeToggle';
+import AppCheckbox from '@/shared/reusable/AppCheckbox';
+import AppSelect from '@/shared/reusable/AppSelect';
 import { formatLabel, formatRoleName } from '@/shared/utils/format';
 import { formatUserName } from '@/shared/utils/user';
-import type { DepartmentResponse, PaginationMeta, RoleResponse, UserResponse } from '@/types/api';
+import type {
+  DepartmentResponse,
+  PaginationMeta,
+  RoleResponse,
+  UserResponse,
+  UserStatusCounts,
+} from '@/types/api';
 import type { UseMutationResult } from '@tanstack/react-query';
 
 type EmployeesTabProps = {
@@ -33,18 +44,18 @@ type EmployeesTabProps = {
   onSearchChange: (value: string) => void;
   statusFilter: string;
   onStatusFilterChange: (value: string) => void;
-  departmentFilter: string;
-  onDepartmentFilterChange: (value: string) => void;
-  roleFilter: string;
-  onRoleFilterChange: (value: string) => void;
+  statusCounts?: UserStatusCounts;
+  statusCountsLoading?: boolean;
+  roleReference: string;
+  onRoleReferenceChange: (value: string) => void;
+  departmentReference: string;
+  onDepartmentReferenceChange: (value: string) => void;
+  roles: RoleResponse[];
   departments: DepartmentResponse[];
-  allRoles: RoleResponse[];
   users: UserResponse[];
   usersQueryError: Error | null;
   onRetryUsers?: () => void;
   usersRetrying?: boolean;
-  statusCounts?: { total: number; active: number; inactive: number; unassignedDepartment: number };
-  statusCountsLoading: boolean;
   meta: PaginationMeta;
   onPageChange: (page: number) => void;
   selectedUsers: string[];
@@ -72,12 +83,18 @@ export function EmployeesTab({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
+  statusCounts,
+  statusCountsLoading,
+  roleReference,
+  onRoleReferenceChange,
+  departmentReference,
+  onDepartmentReferenceChange,
+  roles,
+  departments,
   users,
   usersQueryError,
   onRetryUsers,
   usersRetrying,
-  statusCounts,
-  statusCountsLoading,
   meta,
   onPageChange,
   selectedUsers,
@@ -87,6 +104,21 @@ export function EmployeesTab({
   updateUserMutation,
   bulkDeactivateMutation,
 }: EmployeesTabProps) {
+  const roleOptions = [
+    { value: ALL_VALUE, label: 'All roles' },
+    ...roles.map((role) => ({
+      value: role.reference,
+      label: formatRoleName(role.name),
+    })),
+  ];
+  const departmentOptions = [
+    { value: ALL_VALUE, label: 'All departments' },
+    ...departments.map((department) => ({
+      value: department.reference,
+      label: formatLabel(department.name),
+    })),
+  ];
+
   return (
     <div className="space-y-4">
       <UserStatusSummary
@@ -97,10 +129,23 @@ export function EmployeesTab({
       />
 
       <FilterCard>
-        <SearchField
+        <SearchInput
+          field
           placeholder="Search employees by reference, name, or email"
           value={search}
           onValueChange={onSearchChange}
+        />
+        <AppSelect
+          placeholder="All roles"
+          options={roleOptions}
+          value={roleReference}
+          onChange={onRoleReferenceChange}
+        />
+        <AppSelect
+          placeholder="All departments"
+          options={departmentOptions}
+          value={departmentReference}
+          onChange={onDepartmentReferenceChange}
         />
         <div className="flex items-center">
           <ViewModeToggle value={viewMode} onChange={onViewModeChange} />
@@ -157,11 +202,13 @@ export function EmployeesTab({
                   <TableRow>
                     {canUpdateUsers ? (
                       <TableHead className="w-10">
-                        <input
-                          type="checkbox"
+                        <AppCheckbox
                           aria-label="Select all employees"
                           checked={users.length > 0 && selectedUsers.length === users.length}
-                          onChange={(event) => onToggleAll(event.target.checked)}
+                          indeterminate={
+                            selectedUsers.length > 0 && selectedUsers.length < users.length
+                          }
+                          onCheckedChange={(checked) => onToggleAll(checked)}
                         />
                       </TableHead>
                     ) : null}
@@ -179,12 +226,11 @@ export function EmployeesTab({
                     <TableRow key={user.reference}>
                       {canUpdateUsers ? (
                         <TableCell>
-                          <input
-                            type="checkbox"
+                          <AppCheckbox
                             aria-label={`Select ${formatUserName(user)}`}
                             checked={selectedUsers.includes(user.reference)}
-                            onChange={(event) =>
-                              onToggleUser(user.reference, event.target.checked)
+                            onCheckedChange={(checked) =>
+                              onToggleUser(user.reference, checked)
                             }
                           />
                         </TableCell>

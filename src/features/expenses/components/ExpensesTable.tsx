@@ -1,4 +1,6 @@
+import { ArrowSquareOutIcon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
 import {
   Table,
   TableBody,
@@ -31,8 +33,8 @@ export function ExpensesTable({ expenses, canViewAll }: ExpensesTableProps) {
           <TableHead>Category</TableHead>
           <TableHead>Amount</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Updated</TableHead>
           <TableHead>Submitted</TableHead>
+          <TableHead className="w-12 text-right">View</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -41,13 +43,8 @@ export function ExpensesTable({ expenses, canViewAll }: ExpensesTableProps) {
             <TableCell>
               <ReferenceCell value={expense.reference} />
             </TableCell>
-            <TableCell>
-              <Link
-                to={`/expenses/${expense.reference}`}
-                className="cursor-pointer font-medium text-primary hover:underline"
-              >
-                {expense.title}
-              </Link>
+            <TableCell className="max-w-[220px]">
+              <p className="line-clamp-1 font-medium text-foreground">{expense.title}</p>
             </TableCell>
             {canViewAll ? (
               <TableCell className="whitespace-normal">
@@ -65,10 +62,19 @@ export function ExpensesTable({ expenses, canViewAll }: ExpensesTableProps) {
               <StatusBadge status={expense.status} />
             </TableCell>
             <TableCell className="text-muted-foreground">
-              {expense.updatedAt ? formatDate(expense.updatedAt) : '—'}
-            </TableCell>
-            <TableCell className="text-muted-foreground">
               {expense.submittedAt ? formatDate(expense.submittedAt) : '—'}
+            </TableCell>
+            <TableCell className="text-right">
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                asChild
+                aria-label={`View ${expense.title}`}
+              >
+                <Link to={`/expenses/${expense.reference}`}>
+                  <ArrowSquareOutIcon className="size-4" />
+                </Link>
+              </Button>
             </TableCell>
           </TableRow>
         ))}

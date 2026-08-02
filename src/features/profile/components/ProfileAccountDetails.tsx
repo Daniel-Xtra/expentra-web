@@ -1,18 +1,14 @@
-import { CopyIcon } from '@phosphor-icons/react';
 import { ProfileInfoField } from '@/shared/components/ProfileInfoField';
+import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatDate, formatLabel } from '@/shared/utils/format';
 import type { UserResponse } from '@/types/api';
 
 type ProfileAccountDetailsProps = {
   user: UserResponse;
-  onCopyReference: (reference: string) => void;
 };
 
-export function ProfileAccountDetails({
-  user,
-  onCopyReference,
-}: ProfileAccountDetailsProps) {
+export function ProfileAccountDetails({ user }: ProfileAccountDetailsProps) {
   return (
     <Card className="border-border/60">
       <CardContent className="py-4">
@@ -20,17 +16,7 @@ export function ProfileAccountDetails({
 
         <ProfileInfoField
           label="Employee ID"
-          value={user.reference}
-          action={
-            <button
-              type="button"
-              className="text-muted-foreground hover:text-foreground"
-              aria-label="Copy employee ID"
-              onClick={() => onCopyReference(user.reference)}
-            >
-              <CopyIcon className="size-3.5" />
-            </button>
-          }
+          value={<ReferenceCell value={user.reference} variant="compact" />}
         />
         <ProfileInfoField
           label="Department"

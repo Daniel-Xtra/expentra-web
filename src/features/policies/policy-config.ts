@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { UseFormReturn } from 'react-hook-form';
 import { requiredField } from '@/shared/lib/zod';
 import type { ExpensePolicyResponse, PolicyCatalogResponse } from '@/types/api';
 import {
@@ -49,11 +50,11 @@ const conditionSchema = z.object({
   operator: z.string(),
   valueNaira: z.string().optional(),
   valueNumber: z.string().optional(),
-  valueCategory: z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHER']).optional(),
-  valueCategories: z.array(z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHER'])).optional(),
+  valueCategory: z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHERS']).optional(),
+  valueCategories: z.array(z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHERS'])).optional(),
   valueWeekdays: z.array(z.string()).optional(),
   valueBoolean: z.enum(['true', 'false']).optional(),
-  paramCategory: z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHER']).optional(),
+  paramCategory: z.enum(['TRAVEL', 'MEALS', 'SUPPLIES', 'OTHERS']).optional(),
   paramWindowDays: z.string().optional(),
 });
 
@@ -112,6 +113,17 @@ export function createTemplateFormSchema(catalogSource: CatalogSource) {
 
 /** Shared shape for forms that include the condition builder. */
 export type PolicyConditionFormShape = Pick<PolicyFormValues, 'match' | 'conditions'>;
+
+/** Narrow a policy/template form to the condition-builder subset (RHF paths are invariant). */
+export function asConditionForm(
+  form:
+    | UseFormReturn<PolicyFormValues>
+    | UseFormReturn<EditPolicyFormValues>
+    | UseFormReturn<TemplateFormValues>
+    | UseFormReturn<PolicyFormValues | EditPolicyFormValues>,
+): UseFormReturn<PolicyConditionFormShape> {
+  return form as unknown as UseFormReturn<PolicyConditionFormShape>;
+}
 
 export function getDefaultPolicyFormValues(catalog: PolicyCatalogResponse): PolicyFormValues {
   return {

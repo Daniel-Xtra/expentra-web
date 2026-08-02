@@ -52,6 +52,13 @@ export function ErrorState({
       <WarningCircleIcon />
       <AlertTitle>Something went wrong</AlertTitle>
       <AlertDescription>{message}</AlertDescription>
+      {onRetry ? (
+        <div className="mt-3">
+          <Button variant="outline" disabled={retrying} onClick={onRetry}>
+            {retrying ? 'Retrying...' : 'Retry'}
+          </Button>
+        </div>
+      ) : null}
     </Alert>
   );
 }

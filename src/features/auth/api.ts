@@ -1,7 +1,6 @@
 import {
   api,
   getAccessToken,
-  refreshAccessToken,
   setSessionTokens,
 } from '@/shared/api/client';
 import type {
@@ -39,14 +38,6 @@ export async function signOut(): Promise<void> {
   await api.post('/auth/sign-out');
 }
 
-export async function refreshTokens(): Promise<string> {
-  const token = await refreshAccessToken();
-  if (!token) {
-    throw new Error('Session expired. Please sign in again.');
-  }
-  return token;
-}
-
 export async function requestPasswordReset(email: string): Promise<string> {
   const { data } = await api.post<ApiResponse<unknown>>('/auth/password-resets', { email });
   return data.message || 'Password reset email has been sent.';
@@ -72,6 +63,38 @@ export async function fetchAuthorizationMe(): Promise<AuthorizationMe> {
 
   if (!data.data) {
     throw new Error(data.message || 'Failed to load profile');
+  }
+
+  return data.data;
+}
+
+export type SsoStatus = {
+  enabled: boolean;
+  buttonLabel: string;
+};
+
+export async function fetchSsoStatus(): Promise<SsoStatus> {
+  const { data } = await api.get<ApiResponse<SsoStatus>>('/auth/sso/status');
+  return (
+    data.data ?? {
+      enabled: false,
+      buttonLabel: 'Sign in with SSO',
+    }
+  );
+}
+
+export function getSsoStartUrl(): string {
+  const base = (import.meta.env.VITE_API_URL ?? '/api/v1').replace(/\/$/, '');
+  return `${base}/auth/sso/start`;
+}
+
+export async function exchangeSsoCode(code: string): Promise<LoginResult> {
+  const { data } = await api.post<ApiResponse<LoginResult>>('/auth/sso/exchange', {
+    code,
+  });
+
+  if (!data.data) {
+    throw new Error(data.message || 'SSO sign-in failed');
   }
 
   return data.data;

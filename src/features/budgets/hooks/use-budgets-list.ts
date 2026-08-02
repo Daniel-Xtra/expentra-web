@@ -2,13 +2,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useState } from 'react';
 import { listDepartments } from '@/features/departments/api';
 import {
-  fetchBudgetHealthCounts,
   fetchCommittedByDepartment,
+  fetchOrganizationBudgetForecast,
   fetchOrganizationBudgetSummary,
   listBudgets,
   type ListBudgetsParams,
 } from '@/features/budgets/api';
-import { resolveBudgetHealthFilter } from '@/features/budgets/components/BudgetHealthSummary';
 import { ALL_VALUE } from '@/features/budgets/constants';
 import { queryKeys } from '@/shared/api/query-keys';
 import { DEFAULT_PAGE_SIZE } from '@/shared/lib/pagination';
@@ -19,7 +18,6 @@ export function useBudgetsList() {
   const [search, setSearch] = useState('');
   const [yearFilter, setYearFilter] = useState(String(currentYear));
   const [statusFilter, setStatusFilter] = useState(ALL_VALUE);
-  const [healthFilter, setHealthFilter] = useState('all');
   const [sortBy, setSortBy] = useState<BudgetListSortField>('utilizationPercent');
   const [sortOrder, setSortOrder] = useState<BudgetListSortOrder>('DESC');
   const [page, setPage] = useState(1);
@@ -31,8 +29,7 @@ export function useBudgetsList() {
     limit: DEFAULT_PAGE_SIZE,
     year: selectedYear,
     sortBy,
-    sortOrder,
-    healthFilter: resolveBudgetHealthFilter(healthFilter),
+    sortOrder
   };
 
   const budgetsQuery = useQuery({
@@ -45,19 +42,14 @@ export function useBudgetsList() {
     queryFn: () => fetchOrganizationBudgetSummary(selectedYear),
   });
 
-  const healthCountsQuery = useQuery({
-    queryKey: queryKeys.budgets.healthCounts(selectedYear),
-    queryFn: () => fetchBudgetHealthCounts(selectedYear),
+  const orgForecastQuery = useQuery({
+    queryKey: queryKeys.budgets.organizationForecast(selectedYear),
+    queryFn: () => fetchOrganizationBudgetForecast(selectedYear),
   });
 
   const byDepartmentQuery = useQuery({
     queryKey: queryKeys.budgets.byDepartment(selectedYear),
     queryFn: () => fetchCommittedByDepartment(selectedYear),
-  });
-
-  const departmentsQuery = useQuery({
-    queryKey: queryKeys.departments.catalog(),
-    queryFn: () => listDepartments({ page: 1, limit: 100 }),
   });
 
   return {
@@ -68,8 +60,6 @@ export function useBudgetsList() {
     setYearFilter,
     statusFilter,
     setStatusFilter,
-    healthFilter,
-    setHealthFilter,
     sortBy,
     setSortBy,
     sortOrder,
@@ -80,8 +70,21 @@ export function useBudgetsList() {
     listParams,
     budgetsQuery,
     orgSummaryQuery,
-    healthCountsQuery,
+    orgForecastQuery,
     byDepartmentQuery,
+  };
+}
+
+export function useBudgetCatalogData(catalogEnabled: boolean) {
+  const departmentsQuery = useQuery({
+    queryKey: queryKeys.departments.catalog(),
+    queryFn: () => listDepartments({ page: 1, limit: 100 }),
+    enabled: catalogEnabled,
+  });
+
+  return {
+    departments: departmentsQuery.data?.items ?? [],
+    isLoading: departmentsQuery.isLoading,
     departmentsQuery,
   };
 }

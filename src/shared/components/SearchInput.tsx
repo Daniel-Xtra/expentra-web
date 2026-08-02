@@ -1,8 +1,8 @@
 import { MagnifyingGlassIcon, XIcon } from '@phosphor-icons/react';
 import type { ChangeEvent, ComponentProps } from 'react';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-
 
 type SearchInputProps = Omit<ComponentProps<'input'>, 'type' | 'value'> & {
   value: string;
@@ -10,6 +10,10 @@ type SearchInputProps = Omit<ComponentProps<'input'>, 'type' | 'value'> & {
   showIcon?: boolean;
   showClear?: boolean;
   containerClassName?: string;
+  /** Wrap for filter-bar layout (and optional label). */
+  field?: boolean;
+  label?: string;
+  fieldClassName?: string;
 };
 
 export function SearchInput({
@@ -22,10 +26,14 @@ export function SearchInput({
   showClear = true,
   placeholder = 'Search…',
   id,
+  field = false,
+  label,
+  fieldClassName,
   ...props
 }: SearchInputProps) {
   const hasValue = value.length > 0;
   const canClear = showClear && hasValue;
+  const wrapField = field || label !== undefined || fieldClassName !== undefined;
 
   function handleChange(event: ChangeEvent<HTMLInputElement>) {
     onChange?.(event);
@@ -36,10 +44,10 @@ export function SearchInput({
     onValueChange('');
   }
 
-  return (
+  const input = (
     <div className={cn('group/search relative', containerClassName)}>
       {showIcon && !canClear ? (
-       <MagnifyingGlassIcon
+        <MagnifyingGlassIcon
           className="pointer-events-none absolute top-1/2 right-5 size-5 -translate-y-1/2 text-foreground/80 transition-colors group-focus-within/search:text-primary"
           aria-hidden
         />
@@ -73,6 +81,17 @@ export function SearchInput({
           <XIcon className="size-4" weight="bold" />
         </button>
       ) : null}
+    </div>
+  );
+
+  if (!wrapField) {
+    return input;
+  }
+
+  return (
+    <div className={cn('min-w-0 w-full flex-1 space-y-1.5 sm:min-w-[220px]', fieldClassName)}>
+      {label ? <Label htmlFor={id}>{label}</Label> : null}
+      {input}
     </div>
   );
 }

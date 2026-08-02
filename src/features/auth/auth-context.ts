@@ -10,6 +10,9 @@ export type AuthState = {
     email: string,
     password: string,
   ) => Promise<{ isEmailVerified: boolean; verificationEmailSent?: boolean }>;
+  completeSso: (
+    exchangeCode: string,
+  ) => Promise<{ isEmailVerified: boolean }>;
   signUp: (input: SignUpInput) => Promise<string>;
   confirmEmailVerification: (token: string) => Promise<string>;
   resendEmailVerification: () => Promise<string>;

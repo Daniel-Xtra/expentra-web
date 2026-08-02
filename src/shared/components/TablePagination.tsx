@@ -34,7 +34,7 @@ export function TablePagination({ meta, onPageChange, className }: TablePaginati
         <span className="font-medium text-foreground">{total}</span>
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:justify-end">
         <Button
           variant="outline"
           size="sm"

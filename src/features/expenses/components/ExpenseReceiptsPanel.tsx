@@ -11,9 +11,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { EmptyState } from '@/shared/components/EmptyState';
 import { toastError } from '@/shared/lib/toast';
 import type { ReceiptResponse } from '@/types/api';
-import { downloadReceipt, fetchReceiptBlob } from '../api';
+import { downloadReceipt, fetchReceiptBlobByObjectKey } from '../api';
 import { ReceiptPreviewDialog } from './ReceiptPreviewDialog';
 
 type ReceiptAction = 'view' | 'download';
@@ -27,6 +28,9 @@ type ExpenseReceiptsPanelProps = {
   onUpload: (file: File) => void | Promise<void>;
   onRemove: (receiptReference: string) => void | Promise<void>;
   className?: string;
+  /** Create-flow empty copy and primary upload focal area */
+  emphasizeEmptyUpload?: boolean;
+  title?: string;
 };
 
 function ReceiptChip({
@@ -109,6 +113,8 @@ export function ExpenseReceiptsPanel({
   onUpload,
   onRemove,
   className,
+  emphasizeEmptyUpload = false,
+  title = 'Receipts',
 }: ExpenseReceiptsPanelProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [busyReceipt, setBusyReceipt] = useState<{
@@ -149,7 +155,10 @@ export function ExpenseReceiptsPanel({
     });
 
     try {
-      const blob = await fetchReceiptBlob(expenseReference, receipt.reference);
+      const blob = await fetchReceiptBlobByObjectKey(
+        expenseReference,
+        receipt.objectKey,
+      );
       setPreviewUrl(URL.createObjectURL(blob));
     } catch (err) {
       clearPreview();
@@ -170,44 +179,51 @@ export function ExpenseReceiptsPanel({
     }
   };
 
+  const openFilePicker = () => fileInputRef.current?.click();
+  const isEmpty = receipts.length === 0;
+  const showHeaderUpload = canUpload && (!emphasizeEmptyUpload || !isEmpty);
+
   return (
     <>
       <Card className={cn('overflow-hidden border-border/60', className)}>
         <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
           <div className="flex min-w-0 items-center gap-2">
             <PaperclipIcon className="size-4 shrink-0 text-muted-foreground" />
-            <span className="text-sm font-semibold text-foreground">Receipts</span>
-            <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
-              {receipts.length}
-            </span>
+            <span className="text-sm font-semibold text-foreground">{title}</span>
+            {receipts.length > 0 ? (
+              <span className="rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                {receipts.length}
+              </span>
+            ) : null}
           </div>
 
-          {canUpload && (
-            <>
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*,application/pdf"
-                hidden
-                onChange={(event) => {
-                  const file = event.target.files?.[0];
-                  if (file) {
-                    void onUpload(file);
-                  }
-                  event.target.value = '';
-                }}
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={isUploading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <UploadSimpleIcon className="size-4" />
-                {isUploading ? 'Uploading…' : 'Upload'}
-              </Button>
-            </>
-          )}
+          {canUpload ? (
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*,application/pdf"
+              hidden
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (file) {
+                  void onUpload(file);
+                }
+                event.target.value = '';
+              }}
+            />
+          ) : null}
+
+          {showHeaderUpload ? (
+            <Button
+              variant="outline"
+              className="h-11 font-normal text-sm px-7 bg-transparent"
+              disabled={isUploading}
+              onClick={openFilePicker}
+            >
+              <UploadSimpleIcon className="size-4" />
+              {isUploading ? 'Uploading…' : emphasizeEmptyUpload ? 'Add another' : 'Upload'}
+            </Button>
+          ) : null}
         </div>
 
         {receipts.length > 0 ? (
@@ -226,22 +242,30 @@ export function ExpenseReceiptsPanel({
               />
             ))}
           </div>
+        ) : emphasizeEmptyUpload ? (
+          <div className="border-t border-border/50 px-4 py-2">
+            <EmptyState
+              compact
+              icon={<PaperclipIcon className="size-5" aria-hidden />}
+              title={canUpload ? 'Attach a receipt' : 'No receipts attached'}
+              description={
+                canUpload
+                  ? 'PDF or image. Required before you can submit.'
+                  : 'You can’t attach receipts. Save and finish later, or ask an admin.'
+              }
+              action={
+                canUpload ? (
+                  <Button disabled={isUploading} onClick={openFilePicker} className="h-11 font-normal text-sm px-7 bg-primary-500">
+                    <UploadSimpleIcon className="size-4" />
+                    {isUploading ? 'Uploading…' : 'Upload receipt'}
+                  </Button>
+                ) : undefined
+              }
+            />
+          </div>
         ) : (
           <p className="border-t border-border/50 px-4 py-2.5 text-sm text-muted-foreground">
             No receipts attached.
-            {canUpload && (
-              <>
-                {' '}
-                <button
-                  type="button"
-                  className="font-medium text-primary hover:underline"
-                  disabled={isUploading}
-                  onClick={() => fileInputRef.current?.click()}
-                >
-                  Upload one
-                </button>
-              </>
-            )}
           </p>
         )}
       </Card>

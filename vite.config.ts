@@ -1,7 +1,9 @@
+/// <reference types="vitest/config" />
 import { defineConfig, loadEnv, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import path from "path"
 
+/** Injects CSP into production HTML using VITE_API_URL from the build environment. */
 function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
   return {
     name: "content-security-policy",
@@ -38,12 +40,7 @@ function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
-  const apiUrl = env.VITE_API_URL ?? "/api/v1"
-  const proxyTarget =
-    env.VITE_API_PROXY_TARGET ??
-    (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")
-      ? new URL(apiUrl).origin
-      : undefined)
+  const apiUrl = env.VITE_API_URL || "/api/v1"
 
   return {
     plugins: [react(), contentSecurityPolicyPlugin(mode, apiUrl)],
@@ -52,15 +49,14 @@ export default defineConfig(({ mode }) => {
         "@": path.resolve(__dirname, "./src"),
       },
     },
-    server: proxyTarget
-      ? {
-          proxy: {
-            "/api": {
-              target: proxyTarget,
-              changeOrigin: true,
-            },
-          },
-        }
-      : undefined,
+    build: {
+      // Production source maps are omitted to avoid exposing client source publicly.
+      sourcemap: false,
+    },
+    test: {
+      environment: "jsdom",
+      globals: true,
+      setupFiles: ["./src/test/setup.ts"],
+    },
   }
 })

@@ -15,7 +15,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PolicyActiveBadge, PolicySeverityBadge } from '@/features/policies/components/policy-badges';
+import { PolicySeverityBadge } from '@/features/policies/components/policy-badges';
+import { StatusPill } from '@/shared/components/StatusPill';
 import { formatPolicyConfigSummary } from '@/features/policies/policy-config';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import type { ExpensePolicyResponse, PolicyCatalogResponse } from '@/types/api';
@@ -41,11 +42,11 @@ export function PoliciesTable({
   const showActions = policyCaps.update || policyCaps.delete;
 
   return (
-    <Table className="min-w-[52rem]">
+    <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="min-w-[12rem]">Name</TableHead>
-          <TableHead className="min-w-[24rem]">Rule summary</TableHead>
+          <TableHead>Name</TableHead>
+          <TableHead className="min-w-[16rem] whitespace-normal">Rule summary</TableHead>
           <TableHead className="w-[1%]">Severity</TableHead>
           <TableHead className="w-[1%]">Status</TableHead>
           {showActions ? <TableHead className="w-[1%] text-right">Actions</TableHead> : null}
@@ -73,7 +74,7 @@ export function PoliciesTable({
                 <PolicySeverityBadge severity={policy.severity} />
               </TableCell>
               <TableCell>
-                <PolicyActiveBadge isActive={policy.isActive} />
+                <StatusPill active={policy.isActive} />
               </TableCell>
               {showActions ? (
                 <TableCell className="text-right">

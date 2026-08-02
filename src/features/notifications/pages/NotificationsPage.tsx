@@ -2,7 +2,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { CheckIcon } from '@phosphor-icons/react';
-import notificationIconUrl from '@/assets/icons/notification.png';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,23 +10,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
-import { AssetIcon } from '@/shared/components/AssetIcon';
-import { FilterCard } from '@/shared/components/FilterCard';
-import { FormField } from '@/shared/components/FormField';
-import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 import { TablePagination } from '@/shared/components/TablePagination';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
-import { DEFAULT_PAGE_SIZE, formatTotalLabel, resolvePaginationMeta, shouldShowPagination } from '@/shared/lib/pagination';
-import { getApiErrorMessage } from '@/shared/api/client';
+import { DEFAULT_PAGE_SIZE, resolvePaginationMeta, shouldShowPagination } from '@/shared/lib/pagination';
 import { hasNavAccess, NOTIFICATION_READ_ACCESS } from '@/shared/navigation';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
+import { cn } from '@/lib/utils';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import {
   listNotifications,
@@ -40,26 +36,6 @@ import { NotificationItem } from '../components/NotificationItem';
 import { NotificationPreferencesPanel } from '../components/NotificationPreferencesPanel';
 
 type InboxFilter = 'all' | 'unread' | 'read';
-
-function NotificationListSkeleton() {
-  return (
-    <ul className="divide-y divide-border/60">
-      {Array.from({ length: 6 }).map((_, index) => (
-        <li key={index} className="flex items-start gap-4 px-6 py-4">
-          <Skeleton className="size-10 shrink-0 rounded-lg" />
-          <div className="min-w-0 flex-1 space-y-2">
-            <div className="flex items-center gap-2">
-              <Skeleton className="h-5 w-16 rounded-full" />
-              <Skeleton className="ml-auto h-3 w-12" />
-            </div>
-            <Skeleton className="h-4 w-3/5 max-w-sm" />
-            <Skeleton className="h-4 w-full max-w-md" />
-          </div>
-        </li>
-      ))}
-    </ul>
-  );
-}
 
 export function NotificationsPage() {
   const { authorization } = useAuth();
@@ -76,6 +52,7 @@ export function NotificationsPage() {
   );
   const [inboxFilter, setInboxFilter] = useState<InboxFilter>('all');
   const [page, setPage] = useState(1);
+  const [markingReference, setMarkingReference] = useState<string | null>(null);
   const unreadOnly = inboxFilter === 'unread';
   const readOnly = inboxFilter === 'read';
 
@@ -99,14 +76,21 @@ export function NotificationsPage() {
       }),
     enabled: canReadNotifications,
     retry: 1,
+    placeholderData: (previous) => previous,
   });
 
   const readMutation = useMutation({
     mutationFn: (reference: string) => markNotificationRead(reference),
+    onMutate: (reference) => {
+      setMarkingReference(reference);
+    },
     onSuccess: async () => {
       await invalidateNotifications(queryClient);
     },
     onError: (err) => toastError(err, 'Failed to mark notification as read'),
+    onSettled: () => {
+      setMarkingReference(null);
+    },
   });
 
   const readAllMutation = useMutation({
@@ -124,23 +108,7 @@ export function NotificationsPage() {
     );
   }
 
-  if (notificationsQuery.isLoading && !notificationsQuery.data) {
-    return <LoadingState message="Loading notifications…" />;
-  }
-
-  if (notificationsQuery.isError) {
-    return (
-      <ErrorState
-        message={getApiErrorMessage(
-          notificationsQuery.error,
-          'Failed to load notifications',
-        )}
-        onRetry={() => void notificationsQuery.refetch()}
-        retrying={notificationsQuery.isFetching}
-      />
-    );
-  }
-
+  const isInitialLoading = notificationsQuery.isLoading && !notificationsQuery.data;
   const notifications = notificationsQuery.data?.items ?? [];
   const meta = resolvePaginationMeta(
     notificationsQuery.data?.meta,
@@ -151,22 +119,20 @@ export function NotificationsPage() {
   const unreadCount = meta.unreadCount ?? 0;
   const isRefreshing = notificationsQuery.isFetching && !notificationsQuery.isLoading;
 
-  const inboxMeta =
-    unreadCount > 0
-      ? `${formatTotalLabel(meta.total, 'notification')} · ${unreadCount} unread`
-      : formatTotalLabel(meta.total, 'notification');
-
   return (
     <PageShell wide>
       <PageHeader
         title="Notifications"
-        description="Stay on top of expense approvals, budget alerts, and account updates."
-        meta={activeTab === 'inbox' ? inboxMeta : 'Manage how you receive updates'}
+        description={
+          activeTab === 'preferences'
+            ? 'Choose in-app and email alerts.'
+            : 'Approvals, payouts, budgets, and account updates.'
+        }
         actions={
           activeTab === 'inbox' && caps.notification.mark ? (
             <Button
-              className="h-11 font-normal text-sm px-7 bg-primary-500"
-              disabled={unreadCount === 0 || readAllMutation.isPending}
+              className="h-11 bg-primary-500 px-7 text-sm font-normal"
+              disabled={unreadCount === 0 || readAllMutation.isPending || isInitialLoading}
               onClick={() => void readAllMutation.mutateAsync()}
             >
               <CheckIcon className="size-4" />
@@ -176,6 +142,7 @@ export function NotificationsPage() {
         }
       />
 
+      <QueryStatus query={notificationsQuery} loadingMessage="Loading notifications…">
       <Tabs
         value={activeTab}
         onValueChange={(value) => {
@@ -192,26 +159,25 @@ export function NotificationsPage() {
         </TabsList>
 
         <TabsContent value="inbox" className="space-y-4">
-          <FilterCard>
-            <FormField label="Show" className="w-full sm:w-[200px]">
-              <Select
-                value={inboxFilter}
-                onValueChange={(value) => {
-                  setInboxFilter(value as InboxFilter);
-                  setPage(1);
-                }}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All notifications</SelectItem>
-                  <SelectItem value="unread">Unread only</SelectItem>
-                  <SelectItem value="read">Read only</SelectItem>
-                </SelectContent>
-              </Select>
-            </FormField>
-          </FilterCard>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium text-muted-foreground">Show</span>
+            <Select
+              value={inboxFilter}
+              onValueChange={(value) => {
+                setInboxFilter(value as InboxFilter);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className="h-8 w-[9rem]" size="sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All</SelectItem>
+                <SelectItem value="unread">Unread</SelectItem>
+                <SelectItem value="read">Read</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <DataCard
             title="Inbox"
@@ -228,11 +194,9 @@ export function NotificationsPage() {
               ) : undefined
             }
           >
-            {isRefreshing ? (
-              <NotificationListSkeleton />
-            ) : notifications.length === 0 ? (
+            {notifications.length === 0 ? (
               <EmptyState
-                icon={<AssetIcon src={notificationIconUrl} className="size-6" />}
+                icon={<AppIcon icon="notification" className="size-6" />}
                 title={
                   unreadOnly
                     ? 'No unread notifications'
@@ -256,14 +220,20 @@ export function NotificationsPage() {
                 }
               />
             ) : (
-              <ul className="divide-y divide-border/60">
+              <ul
+                className={cn(
+                  'divide-y divide-border/60',
+                  isRefreshing && 'opacity-70',
+                )}
+                aria-busy={isRefreshing}
+              >
                 {notifications.map((notification) => (
                   <NotificationItem
                     key={notification.reference}
                     notification={notification}
                     canMarkRead={caps.notification.mark}
                     onMarkRead={(reference) => void readMutation.mutateAsync(reference)}
-                    isMarkingRead={readMutation.isPending}
+                    isMarkingRead={markingReference === notification.reference}
                   />
                 ))}
               </ul>
@@ -272,31 +242,19 @@ export function NotificationsPage() {
         </TabsContent>
 
         <TabsContent value="preferences" className="space-y-4">
-          {preferences.preferencesQuery.isLoading ? (
-            <div className="rounded-lg border border-border/60 p-6">
-              <Skeleton className="mb-4 h-5 w-40" />
-              <Skeleton className="mb-6 h-4 w-full max-w-lg" />
-              <div className="space-y-6">
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </div>
-            </div>
-          ) : preferences.preferencesQuery.isError ? (
-            <ErrorState
-              message={(preferences.preferencesQuery.error as Error).message}
-              onRetry={() => void preferences.preferencesQuery.refetch()}
-              retrying={preferences.preferencesQuery.isFetching}
-            />
-          ) : preferences.preferencesQuery.data ? (
-            <NotificationPreferencesPanel
-              preferences={preferences.preferencesQuery.data}
-              isUpdating={preferences.isUpdating}
-              canUpdate={caps.notification.update}
-              onToggle={(input) => void preferences.updateMutation.mutateAsync(input)}
-            />
-          ) : null}
+          <QueryStatus query={preferences.preferencesQuery} loadingMessage="Loading preferences…">
+            {preferences.preferencesQuery.data ? (
+              <NotificationPreferencesPanel
+                preferences={preferences.preferencesQuery.data}
+                isUpdating={preferences.isUpdating}
+                canUpdate={caps.notification.update}
+                onToggle={(input) => void preferences.updateMutation.mutateAsync(input)}
+              />
+            ) : null}
+          </QueryStatus>
         </TabsContent>
       </Tabs>
+      </QueryStatus>
     </PageShell>
   );
 }

@@ -1,12 +1,13 @@
 import { NavLink } from 'react-router-dom';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { usePendingApprovalCount } from '@/features/approvals/hooks/use-pending-approval-count';
+import { usePendingPayoutsCount } from '@/features/payouts/hooks/use-pending-payouts-count';
 import { useVisibleNavSections } from '@/shared/hooks/use-visible-nav-sections';
 import type { NavItem } from '@/shared/navigation';
 import { BrandLogo } from './BrandLogo';
-import { IconFile } from './icons';
 import { LoadingState } from './LoadingState';
-import { navIconMap } from './nav-icon-map';
+import { navIconFallback, navIconMap } from './nav-icon-map';
 
 const SIDEBAR_WIDTH = 260;
 
@@ -15,8 +16,14 @@ type SidebarProps = {
   onClose: () => void;
 };
 
-function NavItemLink({ item }: { item: NavItem }) {
-  const Icon = navIconMap[item.to] ?? IconFile;
+function NavItemLink({
+  item,
+  badgeCount,
+}: {
+  item: NavItem;
+  badgeCount?: number;
+}) {
+  const Icon = navIconMap[item.to] ?? navIconFallback;
 
   return (
     <NavLink
@@ -26,19 +33,53 @@ function NavItemLink({ item }: { item: NavItem }) {
         cn(
           'flex cursor-pointer items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium transition-colors',
           isActive
-            ? 'bg-[#31b4540d] text-foreground [&_svg]:text-[#31b454]'
+            ? 'bg-success-50 text-foreground [&_svg]:text-success-800'
             : 'text-sidebar-foreground hover:bg-muted/70 hover:text-foreground',
         )
       }
     >
-      <Icon size={16} className="shrink-0" />
-      <span className="truncate">{item.label}</span>
+      {({ isActive }) => (
+        <>
+          <Icon
+            size={16}
+            weight={isActive ? 'duotone' : 'regular'}
+            className="shrink-0"
+            aria-hidden
+          />
+          <span className="min-w-0 flex-1 truncate">{item.label}</span>
+          {badgeCount != null && badgeCount > 0 && (
+            <span className="flex size-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
+              {badgeCount > 9 ? '9+' : badgeCount}
+            </span>
+          )}
+        </>
+      )}
     </NavLink>
   );
 }
 
+function badgeForNavItem(
+  to: string,
+  pendingApprovals: number,
+  pendingPayouts: number,
+): number | undefined {
+  if (to === '/approvals') {
+    return pendingApprovals;
+  }
+  if (to === '/payouts') {
+    return pendingPayouts;
+  }
+  return undefined;
+}
+
 function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   const { sections, isAuthorizationPending } = useVisibleNavSections();
+  const { pendingCount: pendingApprovals } = usePendingApprovalCount(
+    !isAuthorizationPending,
+  );
+  const { pendingCount: pendingPayouts } = usePendingPayoutsCount(
+    !isAuthorizationPending,
+  );
 
   return (
     <div className="flex h-full flex-col border-r border-sidebar-border bg-sidebar">
@@ -63,7 +104,14 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
               )}
               {section.items.map((item) => (
                 <div key={item.to} onClick={onNavigate}>
-                  <NavItemLink item={item} />
+                  <NavItemLink
+                    item={item}
+                    badgeCount={badgeForNavItem(
+                      item.to,
+                      pendingApprovals,
+                      pendingPayouts,
+                    )}
+                  />
                 </div>
               ))}
             </div>

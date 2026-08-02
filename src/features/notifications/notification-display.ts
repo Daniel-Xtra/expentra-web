@@ -111,15 +111,39 @@ function resolveExpenseLink(payload: Record<string, unknown>) {
   };
 }
 
-function resolveBudgetLink(notificationType: string) {
+function resolveBudgetLink(
+  notificationType: string,
+  payload: Record<string, unknown>,
+  options?: { canReadBudgets?: boolean },
+) {
   if (!notificationType.startsWith('BUDGET_')) {
     return undefined;
   }
 
-  return {
-    href: '/admin/budgets',
-    hrefLabel: 'View budgets',
-  };
+  if (options?.canReadBudgets) {
+    return {
+      href: '/admin/budgets',
+      hrefLabel: 'View budgets',
+    };
+  }
+
+  const departmentReference = readString(payload, 'departmentReference');
+  if (departmentReference) {
+    return {
+      href: `/department/${departmentReference}`,
+      hrefLabel: 'View department',
+    };
+  }
+
+  const expenseReference = readString(payload, 'expenseReference');
+  if (expenseReference) {
+    return {
+      href: `/expenses/${expenseReference}`,
+      hrefLabel: 'View expense',
+    };
+  }
+
+  return undefined;
 }
 
 function buildFallbackBody(
@@ -142,7 +166,10 @@ function buildFallbackBody(
   return `You have a new ${formatLabel(notificationType).toLowerCase()} notification.`;
 }
 
-export function getNotificationDisplay(notification: NotificationResponse): NotificationDisplay {
+export function getNotificationDisplay(
+  notification: NotificationResponse,
+  options?: { canReadBudgets?: boolean },
+): NotificationDisplay {
   const payload = notification.payload ?? {};
   const defaults = TYPE_DEFAULTS[notification.type] ?? FALLBACK_DISPLAY;
   const title =
@@ -150,7 +177,8 @@ export function getNotificationDisplay(notification: NotificationResponse): Noti
   const body =
     readString(payload, 'body') ?? buildFallbackBody(notification.type, payload);
   const link =
-    resolveExpenseLink(payload) ?? resolveBudgetLink(notification.type);
+    resolveExpenseLink(payload) ??
+    resolveBudgetLink(notification.type, payload, options);
 
   return {
     title,

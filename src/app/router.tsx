@@ -1,5 +1,4 @@
 import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { LegacyDepartmentOverviewRedirect } from '@/app/legacy-department-overview-redirect';
 import {
   ApprovalLevelsPage,
   ApprovalQueuePage,
@@ -10,11 +9,12 @@ import {
   DashboardPage,
   DelegationsPage,
   DepartmentDetailPage,
-  DepartmentOverviewPage,
+  DepartmentPage,
   DepartmentsPage,
   ExpenseDetailPage,
   ExpenseListPage,
-  FinanceQueuePage,
+  ExportsPage,
+  PayoutsPage,
   NotificationsPage,
   PoliciesPage,
   ProfilePage,
@@ -24,6 +24,8 @@ import {
   UsersPage,
 } from '@/app/lazy-pages';
 import { LoginPage } from '@/features/auth/pages/LoginPage';
+import { SsoCallbackPage } from '@/features/auth/pages/SsoCallbackPage';
+import { SuspendedAccountPage } from '@/features/auth/pages/SuspendedAccountPage';
 import { ForgotPasswordPage } from '@/features/auth/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage';
 import { ResetPasswordRedirect } from '@/features/auth/components/ResetPasswordRedirect';
@@ -34,8 +36,10 @@ import { AppLayout } from '@/shared/components/AppLayout';
 import { CapabilityRoute } from '@/shared/components/CapabilityRoute';
 import { DocumentMetadataLayout } from '@/shared/components/DocumentMetadata';
 import { HomeRedirect } from '@/shared/components/HomeRedirect';
+import { ActiveAccountRoute } from '@/shared/components/ActiveAccountRoute';
 import { EmailVerifiedRoute } from '@/shared/components/EmailVerifiedRoute';
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute';
+import { RouteErrorBoundary } from '@/shared/components/RouteErrorBoundary';
 import { protectedRouteConfigs } from '@/shared/navigation';
 
 function routeGuard(id: string) {
@@ -56,10 +60,19 @@ function routeGuard(id: string) {
 export const router = createBrowserRouter([
   {
     element: <DocumentMetadataLayout />,
+    errorElement: <RouteErrorBoundary />,
     children: [
       {
         path: '/login',
         element: <LoginPage />,
+      },
+      {
+        path: '/auth/sso/callback',
+        element: <SsoCallbackPage />,
+      },
+      {
+        path: '/account-suspended',
+        element: <SuspendedAccountPage />,
       },
       {
         path: '/signup',
@@ -82,14 +95,21 @@ export const router = createBrowserRouter([
         element: <ResetPasswordPage />,
       },
       {
+        path: '/verify-email',
+        element: <VerifyEmailPage />,
+      },
+      {
         element: <ProtectedRoute />,
         children: [
-          { path: 'verify-email', element: <VerifyEmailPage /> },
           {
-            element: <EmailVerifiedRoute />,
+            element: <ActiveAccountRoute />,
             children: [
               {
+                element: <EmailVerifiedRoute />,
+                children: [
+              {
                 element: <AppLayout />,
+                errorElement: <RouteErrorBoundary />,
                 children: [
                   { index: true, element: <HomeRedirect /> },
 
@@ -109,39 +129,29 @@ export const router = createBrowserRouter([
                     children: [{ path: 'expenses/new', element: <CreateExpensePage /> }],
                   },
                   { path: 'profile', element: <ProfilePage /> },
+                  { path: 'exports', element: <ExportsPage /> },
 
                   {
                     element: routeGuard('approvals'),
                     children: [{ path: 'approvals', element: <ApprovalQueuePage /> }],
                   },
                   {
-                    element: routeGuard('department-overview'),
+                    element: routeGuard('department'),
                     children: [
-                      { path: 'department-overview', element: <DepartmentOverviewPage /> },
+                      { path: 'department', element: <DepartmentPage /> },
                       {
-                        path: 'department-overview/:reference',
-                        element: <DepartmentOverviewPage />,
-                      },
-                      {
-                        path: 'my-department',
-                        element: <LegacyDepartmentOverviewRedirect />,
-                      },
-                      {
-                        path: 'my-department/:reference',
-                        element: <LegacyDepartmentOverviewRedirect />,
+                        path: 'department/:reference',
+                        element: <DepartmentPage />,
                       },
                     ],
                   },
                   {
-                    element: routeGuard('finance'),
-                    children: [{ path: 'finance', element: <FinanceQueuePage /> }],
+                    element: routeGuard('payouts'),
+                    children: [{ path: 'payouts', element: <PayoutsPage /> }],
                   },
                   {
                     element: routeGuard('admin-reports'),
-                    children: [
-                      { path: 'admin/reports', element: <ReportsPage /> },
-                      { path: 'reports', element: <Navigate to="/admin/reports" replace /> },
-                    ],
+                    children: [{ path: 'admin/reports', element: <ReportsPage /> }],
                   },
                   {
                     element: routeGuard('notifications'),
@@ -164,10 +174,6 @@ export const router = createBrowserRouter([
                     children: [
                       { path: 'admin/departments', element: <DepartmentsPage /> },
                       { path: 'admin/departments/:reference', element: <DepartmentDetailPage /> },
-                      {
-                        path: 'admin/departments/:reference/budget',
-                        element: <Navigate to=".." replace />,
-                      },
                     ],
                   },
                   {
@@ -196,6 +202,8 @@ export const router = createBrowserRouter([
                     element: routeGuard('access-review'),
                     children: [{ path: 'admin/access-review', element: <AccessReviewPage /> }],
                   },
+                ],
+              },
                 ],
               },
             ],

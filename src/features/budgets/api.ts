@@ -3,8 +3,7 @@ import { queueExport } from '@/shared/api/export';
 import type {
   ApiResponse,
   BudgetByDepartmentRow,
-  BudgetHealthCounts,
-  BudgetHealthFilter,
+  BudgetForecastResponse,
   BudgetListSortField,
   BudgetListSortOrder,
   BudgetResponse,
@@ -20,7 +19,6 @@ export type ListBudgetsParams = {
   departmentReference?: string;
   sortBy?: BudgetListSortField;
   sortOrder?: BudgetListSortOrder;
-  healthFilter?: BudgetHealthFilter;
 };
 
 export type CreateBudgetInput = {
@@ -56,14 +54,14 @@ export async function fetchOrganizationBudgetSummary(
   return data.data;
 }
 
-export async function fetchBudgetHealthCounts(year: number): Promise<BudgetHealthCounts> {
-  const { data } = await api.get<ApiResponse<BudgetHealthCounts>>('/budgets/status-counts', {
-    params: { year },
-  });
-  if (!data.data) {
-    throw new Error(data.message || 'Failed to load budget health counts');
-  }
-  return data.data;
+export async function fetchOrganizationBudgetForecast(
+  year: number,
+): Promise<BudgetForecastResponse> {
+  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
+    '/budgets/organization/forecast',
+    { params: { year } },
+  );
+  return data.data ?? { hasBudget: false };
 }
 
 export async function fetchCommittedByDepartment(
@@ -77,16 +75,7 @@ export async function fetchCommittedByDepartment(
 }
 
 export async function exportBudgets(params: ListBudgetsParams = {}): Promise<string> {
-  const result = await queueExport('/budgets/export', params);
-  return result.message;
-}
-
-export async function getBudget(reference: string): Promise<BudgetResponse> {
-  const { data } = await api.get<ApiResponse<BudgetResponse>>(`/budgets/${reference}`);
-  if (!data.data) {
-    throw new Error(data.message || 'Budget not found');
-  }
-  return data.data;
+  return queueExport('/budgets/export', params);
 }
 
 export async function createBudget(input: CreateBudgetInput): Promise<BudgetResponse> {

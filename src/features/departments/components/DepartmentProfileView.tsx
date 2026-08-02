@@ -136,6 +136,7 @@ export function DepartmentProfileView({
         summary={budgetSummaryQuery.data}
         isLoading={budgetSummaryQuery.isLoading}
         readOnly={readOnly}
+        managed={managed}
       />
 
       <DepartmentTeamOverviewSection

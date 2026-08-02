@@ -41,15 +41,21 @@ export function useRolePermissions() {
   });
 
   const openDialog = async (reference: string) => {
+    setEditingRoleRef(reference);
     setLoading(true);
     try {
       const role = await getRole(reference);
       setEditingRole(role);
       setSelectedPermissions(
-        role.permissions?.map((permission) => normalizeReference(permission.reference)) ?? [],
+        role.permissions
+          ?.map((permission) => permission.reference)
+          .filter((value): value is string => Boolean(value?.trim()))
+          .map(normalizeReference) ?? [],
       );
-      setEditingRoleRef(reference);
     } catch (error) {
+      setEditingRoleRef(null);
+      setEditingRole(null);
+      setSelectedPermissions([]);
       handleMutationError(error, { fallback: 'Failed to load role permissions' });
     } finally {
       setLoading(false);
@@ -66,6 +72,10 @@ export function useRolePermissions() {
     selectedPermissions.includes(normalizeReference(reference));
 
   const togglePermission = (reference: string, checked: boolean) => {
+    if (!reference?.trim()) {
+      return;
+    }
+
     const normalized = normalizeReference(reference);
     setSelectedPermissions((current) => {
       const normalizedCurrent = current.map(normalizeReference);

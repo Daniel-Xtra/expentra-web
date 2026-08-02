@@ -1,7 +1,6 @@
 import { DotsThreeVerticalIcon, ShieldCheckIcon } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
-import arrowRightIconUrl from '@/assets/icons/arrow-right.png';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -12,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { AssetIcon } from '@/shared/components/AssetIcon';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { UserAvatar } from '@/shared/components/UserAvatar';
 import { formatLabel, formatRoleName } from '@/shared/utils/format';
@@ -47,8 +46,8 @@ function UserDisplayName({ user }: { user: UserResponse }) {
 
 function DetailArrow() {
   return (
-    <AssetIcon
-      src={arrowRightIconUrl}
+    <AppIcon
+      icon="arrow-right"
       className="mx-1.5 inline-block size-3.5 shrink-0 align-middle"
     />
   );
@@ -107,6 +106,7 @@ export function EmployeeActions({
                 void updateUserMutation.mutateAsync({
                   reference: user.reference,
                   isActive: !user.isActive,
+                  displayName: formatUserName(user),
                 })
               }
             >

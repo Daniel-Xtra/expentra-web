@@ -11,7 +11,7 @@ export function PageShell({ children, className, wide }: PageShellProps) {
   return (
     <section
       className={cn(
-        'flex flex-col gap-4',
+        'flex w-full min-w-0 flex-col gap-4',
         wide ? 'max-w-none' : 'max-w-5xl',
         className,
       )}

@@ -4,7 +4,6 @@ import {
   BuildingsIcon,
   ChartBarIcon,
 } from '@phosphor-icons/react';
-import shieldCheckIconUrl from '@/assets/icons/shield-check.png';
 import { UserAvatar } from '@/shared/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,7 +17,7 @@ import {
 } from '@/components/ui/table';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { DataCard } from '@/shared/components/DataCard';
-import { AssetIcon } from '@/shared/components/AssetIcon';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 import { useResourceAuditLogs } from '@/shared/hooks/use-resource-audit-logs';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { LoadingState } from '@/shared/components/LoadingState';
@@ -28,7 +27,6 @@ import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { StatusPill } from '@/shared/components/StatusPill';
 import { canAccess } from '@/shared/lib/capabilities';
-import { toastError, toastSuccess } from '@/shared/lib/toast';
 import { formatDate, formatLabel, formatRoleName } from '@/shared/utils/format';
 import { formatNgn } from '@/shared/utils/money';
 import { formatUserName } from '@/shared/utils/user';
@@ -45,15 +43,6 @@ type UserProfileViewProps = {
   onToggleActive?: () => void;
   togglePending?: boolean;
 };
-
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toastSuccess('Copied to clipboard');
-  } catch {
-    toastError(null, 'Failed to copy');
-  }
-}
 
 function StatCard({
   label,
@@ -91,7 +80,7 @@ export function UserProfileView({
   const auditQuery = useResourceAuditLogs(user.reference, canReadAudit);
 
   return (
-    <PageShell className="max-w-5xl space-y-4">
+    <PageShell wide className="space-y-4">
       <PageHeader
         backTo={backTo}
         backLabel={backLabel}
@@ -130,10 +119,7 @@ export function UserProfileView({
                   <StatusPill active={user.isActive} />
                   {user.isEmailVerified ? (
                     <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                      <AssetIcon
-                        src={shieldCheckIconUrl}
-                        className="size-3.5"
-                      />
+                      <AppIcon icon="shield-check" className="size-3.5" />
                       Verified
                     </span>
                   ) : (
@@ -171,10 +157,7 @@ export function UserProfileView({
         </CardContent>
       </Card>
 
-      <EmployeeAccountDetails
-        user={user}
-        onCopyReference={(reference) => void copyToClipboard(reference)}
-      />
+      <EmployeeAccountDetails user={user} />
 
       {(summary.orgGrants?.length ?? 0) > 0 ||
       summary.managedDepartments.length > 0 ? (
@@ -224,10 +207,10 @@ export function UserProfileView({
             <TableHeader>
               <TableRow>
                 <TableHead>Reference</TableHead>
-                <TableHead>Title</TableHead>
+                <TableHead className="hidden sm:table-cell">Title</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Created</TableHead>
+                <TableHead className="hidden md:table-cell">Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -238,8 +221,14 @@ export function UserProfileView({
                       value={expense.reference}
                       variant="compact"
                     />
+                    <Link
+                      to={`/expenses/${expense.reference}`}
+                      className="mt-1 block font-medium text-foreground hover:text-primary hover:underline sm:hidden"
+                    >
+                      {expense.title}
+                    </Link>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden sm:table-cell">
                     <Link
                       to={`/expenses/${expense.reference}`}
                       className="font-medium text-foreground hover:text-primary hover:underline"
@@ -253,7 +242,7 @@ export function UserProfileView({
                   <TableCell>
                     <StatusBadge status={expense.status as ExpenseStatus} />
                   </TableCell>
-                  <TableCell className="text-muted-foreground">
+                  <TableCell className="hidden text-muted-foreground md:table-cell">
                     {formatDate(expense.createdAt)}
                   </TableCell>
                 </TableRow>

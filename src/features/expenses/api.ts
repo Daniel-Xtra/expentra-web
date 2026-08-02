@@ -14,8 +14,8 @@ import type {
   ExpensePolicyHint,
   ExpenseResponse,
   ExpenseStatusCounts,
+  ExpenseSubmitCheckResult,
   PaginatedResult,
-  PolicyEvaluationResult,
   ReceiptResponse,
 } from '@/types/api';
 
@@ -33,8 +33,6 @@ export type ListExpensesParams = {
   page?: number;
   limit?: number;
   status?: string;
-  needsAction?: boolean;
-  actionableOnly?: boolean;
   sortBy?: ExpenseListSortField;
   sortOrder?: ExpenseListSortOrder;
 };
@@ -69,14 +67,12 @@ export async function fetchExpenseStatusCounts(): Promise<ExpenseStatusCounts> {
   return data.data;
 }
 
-export async function exportMyExpenses(params: ListExpensesParams = {}) {
-  const result = await queueExport('/expenses/me/export', params);
-  return result.message;
+export async function exportMyExpenses(params: ListExpensesParams = {}): Promise<string> {
+  return queueExport('/expenses/me/export', params);
 }
 
-export async function exportExpenses(params: ListExpensesParams = {}) {
-  const result = await queueExport('/expenses/export', params);
-  return result.message;
+export async function exportExpenses(params: ListExpensesParams = {}): Promise<string> {
+  return queueExport('/expenses/export', params);
 }
 
 export async function fetchExpensePolicyHints(
@@ -144,8 +140,8 @@ export type SubmitExpenseOptions = {
 
 export async function checkExpenseSubmitPolicies(
   reference: string,
-): Promise<PolicyEvaluationResult> {
-  const { data } = await api.post<ApiResponse<PolicyEvaluationResult>>(
+): Promise<ExpenseSubmitCheckResult> {
+  const { data } = await api.post<ApiResponse<ExpenseSubmitCheckResult>>(
     `/expenses/${reference}/submit/check`,
   );
   if (!data.data) {
@@ -274,6 +270,21 @@ export async function fetchReceiptBlob(
   const { data } = await api.get<Blob>(
     `/expenses/${expenseReference}/receipts/${receiptReference}/download`,
     { responseType: 'blob' },
+  );
+  return data;
+}
+
+/** View a private receipt by storage object key (inline stream). */
+export async function fetchReceiptBlobByObjectKey(
+  expenseReference: string,
+  objectKey: string,
+): Promise<Blob> {
+  const { data } = await api.get<Blob>(
+    `/expenses/${expenseReference}/receipts/view`,
+    {
+      params: { objectKey },
+      responseType: 'blob',
+    },
   );
   return data;
 }

@@ -3,7 +3,7 @@ import { CreateRoleDialog, EditRoleDialog } from '@/features/roles/components/Ro
 import { RolesTab } from '@/features/roles/components/RolesTab';
 import { useRolesAccess } from '@/features/roles/hooks/use-roles-access';
 import type { useRolesManagement } from '@/features/roles/hooks/use-roles-management';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { AppConfirmModal } from '@/shared/reusable/AppConfirmModal';
 
 type RolesManagementPanelProps = {
   roles: ReturnType<typeof useRolesManagement>;
@@ -16,9 +16,11 @@ export function RolesManagementPanel({ roles: rolesState }: RolesManagementPanel
     mutations,
     permissions,
     templatesQuery,
+    permissionsQuery,
     roles,
     meta,
     permissionGroups,
+    permissionsCatalogLoading,
     requestDeleteRole,
   } = rolesState;
 
@@ -54,6 +56,7 @@ export function RolesManagementPanel({ roles: rolesState }: RolesManagementPanel
         form={mutations.createRoleForm}
         loading={mutations.createRoleMutation.isPending}
         templates={templatesQuery.data ?? []}
+        templatesLoading={templatesQuery.isLoading}
         onSubmit={mutations.createRoleForm.handleSubmit((values) =>
           mutations.createRoleMutation.mutateAsync(values),
         )}
@@ -76,8 +79,12 @@ export function RolesManagementPanel({ roles: rolesState }: RolesManagementPanel
       <PermissionsEditorDialog
         open={Boolean(permissions.editingRoleRef)}
         role={permissions.editingRole}
+        roleLoading={permissions.loading}
+        catalogLoading={permissionsCatalogLoading}
+        catalogError={
+          permissionsQuery.isError ? (permissionsQuery.error as Error) : null
+        }
         selectedCount={permissions.selectedPermissions.length}
-        loading={permissions.loading}
         saving={permissions.permissionsMutation.isPending}
         applyingTemplate={permissions.applyTemplateMutation.isPending}
         permissionGroups={permissionGroups}
@@ -100,7 +107,7 @@ export function RolesManagementPanel({ roles: rolesState }: RolesManagementPanel
         }
       />
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(mutations.deleteTarget)}
         onOpenChange={(open) => !open && mutations.setDeleteTarget(null)}
         title="Delete role"

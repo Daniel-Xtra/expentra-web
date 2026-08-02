@@ -8,19 +8,9 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { formatNgnAxis } from '@/features/reports/spending-chart-utils';
 import { formatNgn } from '@/shared/utils/money';
 import type { DashboardSpendPeriodRow } from '@/types/api';
-
-function formatNgnAxis(kobo: number) {
-  const naira = kobo / 100;
-  if (naira >= 1_000_000) {
-    return `₦${(naira / 1_000_000).toFixed(1)}M`;
-  }
-  if (naira >= 1_000) {
-    return `₦${(naira / 1_000).toFixed(0)}K`;
-  }
-  return formatNgn(kobo);
-}
 
 type ChartPoint = DashboardSpendPeriodRow;
 

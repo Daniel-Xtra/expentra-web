@@ -27,17 +27,20 @@ export const ProfilePage = withLazyPage(
 export const ApprovalQueuePage = withLazyPage(
   lazyNamed(() => import('@/features/approvals/pages/ApprovalQueuePage'), 'ApprovalQueuePage'),
 );
-export const DepartmentOverviewPage = withLazyPage(
-  lazyNamed(() => import('@/features/department-overview/pages/DepartmentOverviewPage'), 'DepartmentOverviewPage'),
+export const DepartmentPage = withLazyPage(
+  lazyNamed(() => import('@/features/department/pages/DepartmentPage'), 'DepartmentPage'),
 );
-export const FinanceQueuePage = withLazyPage(
-  lazyNamed(() => import('@/features/finance/pages/FinanceQueuePage'), 'FinanceQueuePage'),
+export const PayoutsPage = withLazyPage(
+  lazyNamed(() => import('@/features/payouts/pages/PayoutsPage'), 'PayoutsPage'),
 );
 export const ReportsPage = withLazyPage(
   lazyNamed(() => import('@/features/reports/pages/ReportsPage'), 'ReportsPage'),
 );
 export const NotificationsPage = withLazyPage(
   lazyNamed(() => import('@/features/notifications/pages/NotificationsPage'), 'NotificationsPage'),
+);
+export const ExportsPage = withLazyPage(
+  lazyNamed(() => import('@/features/exports/pages/ExportsPage'), 'ExportsPage'),
 );
 export const UsersPage = withLazyPage(
   lazyNamed(() => import('@/features/users/pages/UsersPage'), 'UsersPage'),

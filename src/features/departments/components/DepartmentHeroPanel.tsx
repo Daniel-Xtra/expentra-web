@@ -16,7 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { DepartmentStatusBadge } from '@/features/departments/components/DepartmentStatusBadge';
+import { StatusPill } from '@/shared/components/StatusPill';
 import { ReferenceCell } from '@/shared/components/ReferenceCell';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { formatDate } from '@/shared/utils/format';
@@ -63,7 +63,7 @@ export function DepartmentHeroPanel({
                 <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
                   {department.name}
                 </h1>
-                <DepartmentStatusBadge isActive={department.isActive} />
+                <StatusPill active={department.isActive} />
               </div>
 
               <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">

@@ -1,75 +1,18 @@
-import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
 import { ApprovalLevelFormFields } from '@/features/approval-levels/components/ApprovalLevelFormFields';
 import type {
   ApprovalLevelFormValues,
   EditApprovalLevelFormValues,
 } from '@/features/approval-levels/schemas';
-import { AppModal } from '@/shared/reusable/AppModal';
+import { AppFormDialog } from '@/shared/reusable/AppFormDialog';
 import type { ApprovalLevelResponse, RoleResponse } from '@/types/api';
-
-type ApprovalLevelDialogShellProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description: string;
-  submitLabel: string;
-  loading: boolean;
-  onSubmit: () => void;
-  children: ReactNode;
-};
-
-function ApprovalLevelDialogShell({
-  open,
-  onOpenChange,
-  title,
-  description,
-  submitLabel,
-  loading,
-  onSubmit,
-  children,
-}: ApprovalLevelDialogShellProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <AppModal
-        title={title}
-        description={description}
-        className="sm:max-w-lg"
-        primaryFn={() => {}}
-        content={children}
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
-              disabled={loading}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
-              disabled={loading}
-              onClick={onSubmit}
-            >
-              {loading ? 'Saving…' : submitLabel}
-            </Button>
-          </>
-        }
-      />
-    </Dialog>
-  );
-}
 
 type CreateApprovalLevelDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<ApprovalLevelFormValues>;
   roles: RoleResponse[];
+  catalogLoading?: boolean;
   loading: boolean;
   onSubmit: () => void;
 };
@@ -79,11 +22,12 @@ export function CreateApprovalLevelDialog({
   onOpenChange,
   form,
   roles,
+  catalogLoading = false,
   loading,
   onSubmit,
 }: CreateApprovalLevelDialogProps) {
   return (
-    <ApprovalLevelDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add approval level"
@@ -93,14 +37,15 @@ export function CreateApprovalLevelDialog({
       onSubmit={onSubmit}
     >
       <ApprovalLevelFormFields
-        form={form}
+        form={form as UseFormReturn<ApprovalLevelFormValues | EditApprovalLevelFormValues>}
         mode="create"
         roles={roles}
+        catalogLoading={catalogLoading}
         nameId="level-name"
         descriptionId="level-description"
         levelId="level-order"
       />
-    </ApprovalLevelDialogShell>
+    </AppFormDialog>
   );
 }
 
@@ -110,6 +55,7 @@ type EditApprovalLevelDialogProps = {
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<EditApprovalLevelFormValues>;
   roles: RoleResponse[];
+  catalogLoading?: boolean;
   loading: boolean;
   onSubmit: () => void;
 };
@@ -120,11 +66,12 @@ export function EditApprovalLevelDialog({
   onOpenChange,
   form,
   roles,
+  catalogLoading = false,
   loading,
   onSubmit,
 }: EditApprovalLevelDialogProps) {
   return (
-    <ApprovalLevelDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Edit approval level"
@@ -139,14 +86,19 @@ export function EditApprovalLevelDialog({
     >
       {level ? (
         <ApprovalLevelFormFields
-          form={form}
+          form={
+            form as UseFormReturn<
+              ApprovalLevelFormValues | EditApprovalLevelFormValues
+            >
+          }
           mode="edit"
           roles={roles}
+          catalogLoading={catalogLoading}
           nameId="edit-level-name"
           descriptionId="edit-level-description"
           levelId="edit-level-order"
         />
       ) : null}
-    </ApprovalLevelDialogShell>
+    </AppFormDialog>
   );
 }

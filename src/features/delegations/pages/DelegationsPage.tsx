@@ -7,19 +7,23 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DelegationTable } from '@/features/delegations/components/DelegationTable';
 import { CreateDelegationDialog } from '@/features/delegations/components/DelegationFormDialogs';
 import { useDelegationMutations } from '@/features/delegations/hooks/use-delegation-mutations';
-import { useDelegations } from '@/features/delegations/hooks/use-delegations';
 import {
-  delegationSchema,
+  useDelegationUserCatalog,
+  useDelegations,
+} from '@/features/delegations/hooks/use-delegations';
+import {
+  createDelegationSchema,
+  getMinDelegationDate,
   type DelegationFormValues,
 } from '@/features/delegations/schemas';
 import type { DelegationTab } from '@/features/delegations/utils';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { AppConfirmModal } from '@/shared/reusable/AppConfirmModal';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { ErrorState } from '@/shared/components/ErrorState';
 import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 import { TablePagination } from '@/shared/components/TablePagination';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { shouldShowPagination } from '@/shared/lib/pagination';
@@ -37,10 +41,13 @@ export function DelegationsPage() {
     label: string;
   } | null>(null);
 
-  const delegations = useDelegations({ grantedPage, receivedPage });
+  const delegations = useDelegations({ grantedPage, receivedPage, loadUsers: true });
+  const catalog = useDelegationUserCatalog(showForm);
+
+  const minDelegationDate = getMinDelegationDate();
 
   const form = useForm<DelegationFormValues>({
-    resolver: zodResolver(delegationSchema),
+    resolver: zodResolver(createDelegationSchema(minDelegationDate)),
     defaultValues: {
       delegateReference: '',
       startsAt: '',
@@ -56,34 +63,21 @@ export function DelegationsPage() {
     onRevokeSuccess: () => setRevokeTarget(null),
   });
 
-  const usersByReference = useMemo(
-    () =>
-      new Map(
-        delegations.users.map((user) => [normalizeReference(user.reference), user]),
-      ),
-    [delegations.users],
-  );
+  const usersByReference = useMemo(() => {
+    const merged = new Map<string, (typeof delegations.users)[number]>();
+    for (const user of [...delegations.users, ...catalog.users]) {
+      merged.set(normalizeReference(user.reference), user);
+    }
+    return merged;
+  }, [delegations.users, catalog.users]);
 
   const openCreateForm = () => {
     form.reset({ delegateReference: '', startsAt: '', endsAt: '' });
     setShowForm(true);
   };
 
-  if (delegations.mineQuery.isLoading && !delegations.mineQuery.data) {
-    return <LoadingState message="Loading delegations…" />;
-  }
-
-  if (delegations.mineQuery.isError) {
-    return (
-      <ErrorState
-        message={(delegations.mineQuery.error as Error).message}
-        onRetry={() => void delegations.mineQuery.refetch()}
-        retrying={delegations.mineQuery.isFetching}
-      />
-    );
-  }
-
   return (
+    <QueryStatus query={delegations.mineQuery} loadingMessage="Loading delegations…">
     <PageShell wide>
       <PageHeader
         title="Approval delegations"
@@ -102,7 +96,8 @@ export function DelegationsPage() {
         open={showForm}
         onOpenChange={setShowForm}
         form={form}
-        users={delegations.users}
+        users={catalog.users}
+        catalogLoading={catalog.isLoading}
         loading={createMutation.isPending}
         onSubmit={form.handleSubmit((values) => createMutation.mutateAsync(values))}
       />
@@ -145,20 +140,16 @@ export function DelegationsPage() {
             {delegations.myDelegations.length === 0 ? (
               <EmptyState
                 title="No delegations yet"
-                action={
-                  canManageDelegations ? (
-                    <Button onClick={openCreateForm}>
-                      <PlusIcon className="size-4" />
-                      New delegation
-                    </Button>
-                  ) : undefined
-                }
+
               />
             ) : (
               <DelegationTable
                 delegations={delegations.myDelegations}
                 personLabel="Delegate"
-                getPersonReference={(delegation) => delegation.delegateReference}
+                getPerson={(delegation) => ({
+                  reference: delegation.delegateReference,
+                  person: delegation.delegate,
+                })}
                 usersByReference={usersByReference}
                 showActions={canManageDelegations}
                 revokeDisabled={revokeMutation.isPending}
@@ -189,7 +180,10 @@ export function DelegationsPage() {
               <DelegationTable
                 delegations={delegations.delegationsToMe}
                 personLabel="From"
-                getPersonReference={(delegation) => delegation.delegatorReference}
+                getPerson={(delegation) => ({
+                  reference: delegation.delegatorReference,
+                  person: delegation.delegator,
+                })}
                 usersByReference={usersByReference}
               />
             )}
@@ -197,7 +191,7 @@ export function DelegationsPage() {
         </TabsContent>
       </Tabs>
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(revokeTarget)}
         onOpenChange={(open) => !open && setRevokeTarget(null)}
         title="Revoke delegation"
@@ -211,5 +205,6 @@ export function DelegationsPage() {
         }}
       />
     </PageShell>
+    </QueryStatus>
   );
 }

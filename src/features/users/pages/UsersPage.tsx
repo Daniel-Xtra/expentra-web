@@ -6,7 +6,6 @@ import { useUsersAccess } from '@/features/users/hooks/use-users-access';
 import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
-import { formatTotalLabel } from '@/shared/lib/pagination';
 
 export function UsersPage() {
   const access = useUsersAccess();
@@ -20,11 +19,7 @@ export function UsersPage() {
     <PageShell wide>
       <PageHeader
         title="Users"
-        description={
-          employees.meta.total > 0
-            ? formatTotalLabel(employees.meta.total, "employee")
-            : "Manage employees, assignments, and access."
-        }
+        description="Manage employees, assignments, and access."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {access.canExportUsers && (

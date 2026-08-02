@@ -11,6 +11,7 @@ type UseDelegationsOptions = {
   grantedPage?: number;
   receivedPage?: number;
   pageSize?: number;
+  loadUsers?: boolean;
 };
 
 export function useDelegations(options: UseDelegationsOptions = {}) {
@@ -30,13 +31,16 @@ export function useDelegations(options: UseDelegationsOptions = {}) {
     placeholderData: keepPreviousData,
   });
 
+  const myDelegations = mineQuery.data?.items ?? [];
+  const delegationsToMe = toMeQuery.data?.items ?? [];
+  const hasDelegations = myDelegations.length > 0 || delegationsToMe.length > 0;
+
   const usersQuery = useQuery({
     queryKey: queryKeys.users.list({ page: 1, limit: 100 }),
     queryFn: () => listUsers({ page: 1, limit: 100 }),
+    enabled: Boolean(options.loadUsers) && hasDelegations,
   });
 
-  const myDelegations = mineQuery.data?.items ?? [];
-  const delegationsToMe = toMeQuery.data?.items ?? [];
   const grantedMeta = resolvePaginationMeta(
     mineQuery.data?.meta,
     myDelegations.length,
@@ -59,5 +63,20 @@ export function useDelegations(options: UseDelegationsOptions = {}) {
     grantedMeta,
     receivedMeta,
     users: usersQuery.data?.items ?? [],
+    usersLoading: usersQuery.isLoading,
+  };
+}
+
+export function useDelegationUserCatalog(catalogEnabled: boolean) {
+  const usersQuery = useQuery({
+    queryKey: queryKeys.users.list({ page: 1, limit: 100 }),
+    queryFn: () => listUsers({ page: 1, limit: 100 }),
+    enabled: catalogEnabled,
+  });
+
+  return {
+    users: usersQuery.data?.items ?? [],
+    isLoading: usersQuery.isLoading,
+    usersQuery,
   };
 }

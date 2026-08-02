@@ -2,13 +2,13 @@ import { api } from '@/shared/api/client';
 import { queueExport } from '@/shared/api/export';
 import type {
   ApiResponse,
+  BudgetForecastResponse,
   BudgetSummaryResponse,
   DepartmentDetailSummary,
   DepartmentHealthFilter,
   DepartmentListSortField,
   DepartmentManagerHistoryResponse,
   DepartmentResponse,
-  DepartmentStatusCounts,
   PaginatedResult,
   TeamDashboard,
   UserResponse,
@@ -60,22 +60,8 @@ export async function listDepartments(
   return { items: data.data ?? [], meta: data.meta };
 }
 
-export async function fetchDepartmentStatusCounts(
-  year?: number,
-): Promise<DepartmentStatusCounts> {
-  const { data } = await api.get<ApiResponse<DepartmentStatusCounts>>(
-    '/departments/status-counts',
-    { params: year ? { year } : undefined },
-  );
-  if (!data.data) {
-    throw new Error(data.message || 'Failed to load department status counts');
-  }
-  return data.data;
-}
-
 export async function exportDepartments(params: ListDepartmentsParams = {}): Promise<string> {
-  const result = await queueExport('/departments/export', params);
-  return result.message;
+  return queueExport('/departments/export', params);
 }
 
 export async function fetchDepartmentDetailSummary(
@@ -223,6 +209,28 @@ export async function fetchManagedDepartmentBudgetSummary(
     throw new Error(data.message || 'Failed to load budget summary');
   }
   return data.data;
+}
+
+export async function fetchDepartmentBudgetForecast(
+  reference: string,
+  year?: number,
+): Promise<BudgetForecastResponse> {
+  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
+    `/departments/${reference}/budget-forecast`,
+    { params: year ? { year } : undefined },
+  );
+  return data.data ?? { hasBudget: false };
+}
+
+export async function fetchManagedDepartmentBudgetForecast(
+  reference: string,
+  year?: number,
+): Promise<BudgetForecastResponse> {
+  const { data } = await api.get<ApiResponse<BudgetForecastResponse>>(
+    `/departments/managed/${reference}/budget-forecast`,
+    { params: year ? { year } : undefined },
+  );
+  return data.data ?? { hasBudget: false };
 }
 
 export async function fetchDepartmentTeamDashboard(
