@@ -16,26 +16,25 @@ import { ApprovalLevelOverviewCard } from '@/features/approval-levels/components
 import { ApprovalLevelsTable } from '@/features/approval-levels/components/ApprovalLevelsTable';
 import { useApprovalLevelMutations } from '@/features/approval-levels/hooks/use-approval-level-mutations';
 import {
+  useApprovalLevelCatalogData,
   useApprovalLevelImpact,
   useApprovalLevelsList,
 } from '@/features/approval-levels/hooks/use-approval-levels-list';
 import { ALL_VALUE, buildImpactDescription } from '@/features/approval-levels/schemas';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
+import { AppConfirmModal } from '@/shared/reusable/AppConfirmModal';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
 import { FilterCard } from '@/shared/components/FilterCard';
-import { FormField } from '@/shared/components/FormField';
-import { SearchField } from '@/shared/components/SearchField';
-import { LoadingState } from '@/shared/components/LoadingState';
+import { SearchInput } from '@/shared/components/SearchInput';
 import { getApiErrorMessage, isServerUnavailableError } from '@/shared/api/client';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 import { TablePagination } from '@/shared/components/TablePagination';
 import {
   DEFAULT_PAGE_SIZE,
-  formatTotalLabel,
   resolvePaginationMeta,
   shouldShowPagination,
 } from '@/shared/lib/pagination';
@@ -45,49 +44,14 @@ export function ApprovalLevelsPage() {
   const { approvalLevel } = useActionCapabilities();
   const list = useApprovalLevelsList();
   const mutations = useApprovalLevelMutations({ listParams: list.listParams });
+  const catalog = useApprovalLevelCatalogData(
+    mutations.showForm || Boolean(mutations.editingLevel),
+  );
   const deleteImpactQuery = useApprovalLevelImpact(mutations.deleteTarget?.reference);
   const deactivateImpactQuery = useApprovalLevelImpact(mutations.deactivateTarget?.reference);
 
-  if (list.levelsQuery.isLoading && !list.levelsQuery.data) {
-    return <LoadingState message="Loading approval levels…" />;
-  }
-
-  if (list.levelsQuery.isError && !list.levelsQuery.data) {
-    if (isServerUnavailableError(list.levelsQuery.error)) {
-      return (
-        <PageShell wide className="gap-6">
-          <PageHeader
-            title="Approval levels"
-            description="Define the steps expenses follow before approval"
-          />
-          <DataCard title="Approval chain">
-            <EmptyState
-              title="No approval levels to show"
-              description="We could not reach the server. Try again when the connection is available."
-              action={
-                <Button variant="outline" onClick={() => void list.levelsQuery.refetch()}>
-                  Retry
-                </Button>
-              }
-            />
-          </DataCard>
-        </PageShell>
-      );
-    }
-
-    return (
-      <PageShell wide className="gap-6">
-        <ErrorState
-          message={getApiErrorMessage(list.levelsQuery.error)}
-          onRetry={() => void list.levelsQuery.refetch()}
-          retrying={list.levelsQuery.isFetching}
-        />
-      </PageShell>
-    );
-  }
-
   const levels = list.levelsQuery.data?.items ?? [];
-  const roles = list.rolesQuery.data?.items ?? [];
+  const roles = catalog.roles;
   const activeCount = levels.filter((level) => level.isActive).length;
   const meta = resolvePaginationMeta(
     list.levelsQuery.data?.meta,
@@ -99,14 +63,47 @@ export function ApprovalLevelsPage() {
   const resetPage = () => list.setPage(1);
 
   return (
+    <QueryStatus
+      query={list.levelsQuery}
+      loadingMessage="Loading approval levels…"
+      renderError={(error, { refetch, isFetching }) => {
+        if (isServerUnavailableError(error)) {
+          return (
+            <PageShell wide className="gap-6">
+              <PageHeader
+                title="Approval levels"
+                description="Define the steps expenses follow before approval"
+              />
+              <DataCard title="Approval chain">
+                <EmptyState
+                  title="No approval levels to show"
+                  description="We could not reach the server. Try again when the connection is available."
+                  action={
+                    <Button variant="outline" onClick={refetch}>
+                      Retry
+                    </Button>
+                  }
+                />
+              </DataCard>
+            </PageShell>
+          );
+        }
+
+        return (
+          <PageShell wide className="gap-6">
+            <ErrorState
+              message={getApiErrorMessage(error)}
+              onRetry={refetch}
+              retrying={isFetching}
+            />
+          </PageShell>
+        );
+      }}
+    >
     <PageShell wide className="gap-6">
       <PageHeader
         title="Approval levels"
-        description={
-          meta.total > 0
-            ? `${formatTotalLabel(meta.total, 'level')} · expenses route through these steps in order`
-            : 'Define the steps expenses follow before approval'
-        }
+        description="Define the steps expenses follow before approval."
         actions={
           <div className="flex flex-wrap gap-2">
             {approvalLevel.export ? (
@@ -136,7 +133,8 @@ export function ApprovalLevelsPage() {
       />
 
       <FilterCard>
-        <SearchField
+        <SearchInput
+          field
           placeholder="Search reference, name, role, or description"
           value={list.search}
           onValueChange={(value) => {
@@ -144,7 +142,7 @@ export function ApprovalLevelsPage() {
             resetPage();
           }}
         />
-        <FormField className="min-w-[140px]">
+        <div className="w-full sm:w-[140px]">
           <Select
             value={list.statusFilter}
             onValueChange={(value) => {
@@ -161,7 +159,7 @@ export function ApprovalLevelsPage() {
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
-        </FormField>
+        </div>
       </FilterCard>
 
       <CreateApprovalLevelDialog
@@ -169,6 +167,7 @@ export function ApprovalLevelsPage() {
         onOpenChange={mutations.setShowForm}
         form={mutations.createForm}
         roles={roles}
+        catalogLoading={catalog.isLoading}
         loading={mutations.createMutation.isPending}
         onSubmit={mutations.createForm.handleSubmit((values) =>
           mutations.createMutation.mutateAsync(values),
@@ -181,6 +180,7 @@ export function ApprovalLevelsPage() {
         onOpenChange={(open) => !open && mutations.setEditingLevel(null)}
         form={mutations.editForm}
         roles={roles}
+        catalogLoading={catalog.isLoading}
         loading={mutations.updateMutation.isPending}
         onSubmit={mutations.editForm.handleSubmit((values) => {
           if (!mutations.editingLevel) return;
@@ -244,7 +244,7 @@ export function ApprovalLevelsPage() {
         )}
       </DataCard>
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(mutations.deactivateTarget)}
         onOpenChange={(open) => !open && mutations.setDeactivateTarget(null)}
         title="Deactivate approval level"
@@ -264,7 +264,7 @@ export function ApprovalLevelsPage() {
         }}
       />
 
-      <ConfirmDialog
+      <AppConfirmModal
         open={Boolean(mutations.deleteTarget)}
         onOpenChange={(open) => !open && mutations.setDeleteTarget(null)}
         title="Delete approval level"
@@ -282,5 +282,6 @@ export function ApprovalLevelsPage() {
         }}
       />
     </PageShell>
+    </QueryStatus>
   );
 }

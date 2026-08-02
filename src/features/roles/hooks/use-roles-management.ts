@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useRoleMutations } from '@/features/roles/hooks/use-role-mutations';
 import { useRolePermissions } from '@/features/roles/hooks/use-role-permissions';
 import { useRoleTemplates } from '@/features/roles/hooks/use-role-templates';
@@ -12,8 +13,13 @@ export function useRolesManagement(enabled: boolean) {
   const rolesList = useRolesList({ enabled });
   const mutations = useRoleMutations();
   const permissions = useRolePermissions();
-  const templatesQuery = useRoleTemplates(enabled);
-  const permissionsQuery = usePermissionsCatalog(enabled);
+
+  const templatesEnabled =
+    enabled && (mutations.showCreateForm || Boolean(permissions.editingRoleRef));
+  const permissionsEnabled = enabled;
+
+  const templatesQuery = useRoleTemplates(templatesEnabled);
+  const permissionsQuery = usePermissionsCatalog(permissionsEnabled);
 
   const roles = rolesList.rolesQuery.data?.items ?? [];
   const meta = resolvePaginationMeta(
@@ -23,7 +29,16 @@ export function useRolesManagement(enabled: boolean) {
     DEFAULT_PAGE_SIZE,
   );
 
-  const permissionGroups = formatPermissionGroups(permissionsQuery.data ?? {});
+  const permissionGroups = useMemo(
+    () => formatPermissionGroups(permissionsQuery.data ?? {}),
+    [permissionsQuery.data],
+  );
+
+  const permissionsCatalogLoading =
+    permissionsEnabled &&
+    !permissionsQuery.isError &&
+    !permissionsQuery.data &&
+    (permissionsQuery.isLoading || permissionsQuery.isFetching);
 
   const isLoading = enabled && rolesList.rolesQuery.isLoading && !rolesList.rolesQuery.data;
 
@@ -39,9 +54,11 @@ export function useRolesManagement(enabled: boolean) {
     mutations,
     permissions,
     templatesQuery,
+    permissionsQuery,
     roles,
     meta,
     permissionGroups,
+    permissionsCatalogLoading,
     isLoading,
     requestDeleteRole,
   };

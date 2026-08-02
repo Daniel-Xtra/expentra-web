@@ -11,6 +11,20 @@ import type { DashboardPeriodTrend } from '@/types/api';
 
 const MIN_REIMBURSEMENTS_FOR_INSIGHT = 3;
 
+export function hasDashboardInsightsContent(input: {
+  trend: DashboardPeriodTrend;
+  avgDaysToReimbursement: number | null;
+  reimbursedCount: number;
+  currentTotalAmount: number;
+}) {
+  const showTrend =
+    input.currentTotalAmount > 0 || input.trend.previousTotalAmount > 0;
+  const showReimbursement =
+    input.reimbursedCount >= MIN_REIMBURSEMENTS_FOR_INSIGHT &&
+    input.avgDaysToReimbursement != null;
+  return showTrend || showReimbursement;
+}
+
 type DashboardInsightsRowProps = {
   trend: DashboardPeriodTrend;
   avgDaysToReimbursement: number | null;
@@ -25,14 +39,7 @@ function TrendBadge({ value }: { value: number | null }) {
   const isDown = value != null && value < 0;
 
   return (
-    <span
-      className={cn(
-        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium',
-        isUp && 'bg-amber-500/10 text-amber-700',
-        isDown && 'bg-emerald-500/10 text-emerald-700',
-        !isUp && !isDown && 'bg-muted text-muted-foreground',
-      )}
-    >
+    <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
       {isUp ? <TrendUpIcon className="size-3" /> : null}
       {isDown ? <TrendDownIcon className="size-3" /> : null}
       {label}
@@ -167,9 +174,7 @@ export function DashboardInsightsRow({
   className,
 }: DashboardInsightsRowProps) {
   const showTrend =
-    currentTotalAmount > 0 ||
-    trend.previousTotalAmount > 0 ||
-    trend.totalAmountChangePercent != null;
+    currentTotalAmount > 0 || trend.previousTotalAmount > 0;
   const showReimbursement =
     reimbursedCount >= MIN_REIMBURSEMENTS_FOR_INSIGHT && avgDaysToReimbursement != null;
 

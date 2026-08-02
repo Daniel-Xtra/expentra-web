@@ -25,26 +25,3 @@ export function PolicySeverityBadge({
     </Badge>
   );
 }
-
-export function PolicyActiveBadge({
-  isActive,
-  className,
-}: {
-  isActive: boolean;
-  className?: string;
-}) {
-  return (
-    <Badge
-      variant="outline"
-      className={cn(
-        'font-medium',
-        isActive
-          ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-          : 'border-border bg-muted/40 text-muted-foreground',
-        className,
-      )}
-    >
-      {isActive ? 'Active' : 'Inactive'}
-    </Badge>
-  );
-}

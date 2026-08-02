@@ -19,6 +19,11 @@ function clampPercent(value: number) {
 export function DashboardBudgetCard() {
   const { authorization } = useAuth();
   const canViewDepartmentBudget = hasManagedDepartmentAccess(authorization);
+  const managedDepartments = authorization?.managedDepartments ?? [];
+  const departmentTo =
+    managedDepartments.length === 1
+      ? `/department/${managedDepartments[0].reference}`
+      : '/department';
   const currentYear = new Date().getFullYear();
 
   const summaryQuery = useQuery({
@@ -48,6 +53,11 @@ export function DashboardBudgetCard() {
           compact
           title="No department budget"
           description="Your department does not have an active budget for this year, or you are not assigned to a department."
+          action={
+            <Button variant="outline" size="sm" asChild>
+              <Link to={departmentTo}>Open team overview</Link>
+            </Button>
+          }
         />
       </DataCard>
     );
@@ -61,14 +71,12 @@ export function DashboardBudgetCard() {
       title="Department budget"
       description={`${summary.department?.name ?? 'Your department'} · ${currentYear}`}
       actions={
-        summary.department ? (
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/reports">
-              View reports
-              <ArrowSquareOutIcon className="size-3.5" />
-            </Link>
-          </Button>
-        ) : undefined
+        <Button variant="outline" size="sm" asChild>
+          <Link to={departmentTo}>
+            Team overview
+            <ArrowSquareOutIcon className="size-3.5" />
+          </Link>
+        </Button>
       }
       contentClassName="space-y-5 p-5 sm:p-6"
     >

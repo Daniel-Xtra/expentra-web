@@ -1,6 +1,7 @@
 import { Controller, type UseFormReturn } from 'react-hook-form';
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
+import { buildCreateBudgetYearOptions } from '@/features/budgets/constants';
 import type {
   BudgetFormValues,
   EditBudgetFormValues,
@@ -14,16 +15,21 @@ import type { DepartmentResponse } from '@/types/api';
 type CreateBudgetFormFieldsProps = {
   form: UseFormReturn<BudgetFormValues>;
   departments: DepartmentResponse[];
+  currentYear: number;
+  catalogLoading?: boolean;
 };
 
 export function CreateBudgetFormFields({
   form,
   departments,
+  currentYear,
+  catalogLoading = false,
 }: CreateBudgetFormFieldsProps) {
   const departmentOptions = departments.map((dept) => ({
     value: dept.reference,
     label: formatLabel(dept.name),
   }));
+  const yearOptions = buildCreateBudgetYearOptions(currentYear);
 
   return (
     <Form {...form}>
@@ -36,11 +42,12 @@ export function CreateBudgetFormFields({
             render={({ field, fieldState }) => (
               <>
                 <AppSelect
-                  placeholder="Select department"
+                  placeholder={catalogLoading ? 'Loading departments…' : 'Select department'}
                   options={departmentOptions}
                   value={field.value}
                   onChange={field.onChange}
                   error={Boolean(fieldState.error)}
+                  disabled={catalogLoading}
                 />
                 {fieldState.error ? (
                   <p className="text-xs text-error-500">{fieldState.error.message}</p>
@@ -52,33 +59,23 @@ export function CreateBudgetFormFields({
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
           <div className="space-y-3">
-            <AppFormLabel htmlFor="budget-year" className="text-black-400">
-              Year
-            </AppFormLabel>
-            <FormField
+            <AppFormLabel className="text-black-400">Year</AppFormLabel>
+            <Controller
               control={form.control}
               name="year"
               render={({ field, fieldState }) => (
-                <FormItem>
-                  <AppFormInput
-                    id="budget-year"
-                    type="number"
-                    placeholder="e.g. 2026"
-                    {...field}
-                    value={field.value ?? ''}
-                    onChange={(event) =>
-                      field.onChange(
-                        event.target.value === '' ? undefined : Number(event.target.value),
-                      )
-                    }
-                    aria-invalid={fieldState.invalid ? true : undefined}
-                    className={cn(
-                      fieldState.error &&
-                        'border-error-500! focus-visible:border-error-500!',
-                    )}
+                <>
+                  <AppSelect
+                    placeholder="Select year"
+                    options={yearOptions}
+                    value={field.value != null ? String(field.value) : ''}
+                    onChange={(value) => field.onChange(Number(value))}
+                    error={Boolean(fieldState.error)}
                   />
-                  <FormMessage className="text-xs text-error-500" />
-                </FormItem>
+                  {fieldState.error ? (
+                    <p className="text-xs text-error-500">{fieldState.error.message}</p>
+                  ) : null}
+                </>
               )}
             />
           </div>

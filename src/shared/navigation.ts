@@ -23,6 +23,13 @@ export const NOTIFICATION_READ_ACCESS: NavAccess = [
   'notification:read:own',
 ];
 
+/** Capability gates for access review (nav, routes, and page actions). */
+export const ACCESS_REVIEW_ACCESS: NavAccess = [
+  'role:read',
+  'user:read',
+  'audit:read',
+];
+
 /** Single source of truth for sidebar links and route guards. */
 export const navSections: NavSection[] = [
   {
@@ -49,12 +56,18 @@ export const navSections: NavSection[] = [
         ],
       },
       {
-        label: 'Department overview',
-        to: '/department-overview',
+        label: 'Delegations',
+        to: '/admin/delegations',
+        capabilities: 'approval:read',
+      },
+      {
+        label: 'Department',
+        to: '/department',
         capabilities: 'department:read:managed',
         requiresManagedDepartment: true,
       },
-      { label: 'Finance', to: '/finance', capabilities: 'expense:reimburse' },
+      { label: 'Payouts', to: '/payouts', capabilities: 'expense:reimburse' },
+      { label: 'Reports', to: '/admin/reports', capabilities: 'report:read' },
     ],
   },
   {
@@ -62,6 +75,11 @@ export const navSections: NavSection[] = [
     items: [
       { label: 'Users', to: '/admin/users', capabilities: 'user:read' },
       { label: 'Roles', to: '/admin/roles', capabilities: 'role:read' },
+      {
+        label: 'Access review',
+        to: '/admin/access-review',
+        capabilities: ACCESS_REVIEW_ACCESS,
+      },
       { label: 'Departments', to: '/admin/departments', capabilities: 'department:read' },
       { label: 'Budgets', to: '/admin/budgets', capabilities: 'budget:read' },
       {
@@ -69,15 +87,8 @@ export const navSections: NavSection[] = [
         to: '/admin/approval-levels',
         capabilities: 'approval_level:read',
       },
-      { label: 'Delegations', to: '/admin/delegations', capabilities: 'approval:read' },
       { label: 'Policies', to: '/admin/policies', capabilities: 'policy:read' },
-      { label: 'Reports', to: '/admin/reports', capabilities: 'report:read' },
       { label: 'Audit logs', to: '/admin/audit-logs', capabilities: 'audit:read' },
-      {
-        label: 'Access review',
-        to: '/admin/access-review',
-        capabilities: 'audit:read',
-      },
     ],
   }
 ];
@@ -121,20 +132,20 @@ export const protectedRouteConfigs: ProtectedRouteConfig[] = [
     ],
   },
   {
-    id: 'department-overview',
-    path: 'department-overview',
+    id: 'department',
+    path: 'department',
     capabilities: 'department:read:managed',
     requiresManagedDepartment: true,
   },
   {
-    id: 'department-overview-detail',
-    path: 'department-overview/:reference',
+    id: 'department-detail',
+    path: 'department/:reference',
     capabilities: 'department:read:managed',
     requiresManagedDepartment: true,
   },
   {
-    id: 'finance',
-    path: 'finance',
+    id: 'payouts',
+    path: 'payouts',
     capabilities: 'expense:reimburse',
   },
   {
@@ -190,7 +201,7 @@ export const protectedRouteConfigs: ProtectedRouteConfig[] = [
   {
     id: 'access-review',
     path: 'admin/access-review',
-    capabilities: 'audit:read',
+    capabilities: ACCESS_REVIEW_ACCESS,
   },
 ];
 

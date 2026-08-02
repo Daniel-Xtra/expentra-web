@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom';
-import { ArrowRightIcon, BuildingsIcon, ReceiptIcon } from '@phosphor-icons/react';
+import {
+  ArrowRightIcon,
+  BuildingsIcon,
+  ReceiptIcon,
+} from '@phosphor-icons/react';
 import type { ReactNode } from 'react';
-import notificationIconUrl from '@/assets/icons/notification.png';
 import { Card, CardContent } from '@/components/ui/card';
-import { AssetIcon } from '@/shared/components/AssetIcon';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 
 type ProfileQuickLinksProps = {
   canReadNotifications: boolean;
-  departmentOverviewPath?: string;
+  departmentPath?: string;
   variant?: 'grid' | 'stack';
 };
 
@@ -21,7 +24,7 @@ type QuickLink = {
 
 export function ProfileQuickLinks({
   canReadNotifications,
-  departmentOverviewPath,
+  departmentPath,
   variant = 'grid',
 }: ProfileQuickLinksProps) {
   const links: QuickLink[] = [
@@ -32,16 +35,16 @@ export function ProfileQuickLinks({
       show: true,
     },
     {
-      to: departmentOverviewPath ?? '/department-overview',
-      label: 'Department overview',
+      to: departmentPath ?? '/department',
+      label: 'Department',
       icon: <BuildingsIcon className="size-4 shrink-0 text-muted-foreground" />,
-      show: Boolean(departmentOverviewPath),
+      show: Boolean(departmentPath),
     },
     {
       to: '/notifications',
       label: 'Notifications',
       description: 'Inbox and delivery preferences',
-      icon: <AssetIcon src={notificationIconUrl} className="size-4 shrink-0" />,
+      icon: <AppIcon icon="notification" className="size-4 shrink-0" />,
       show: canReadNotifications,
     },
   ].filter((link) => link.show);

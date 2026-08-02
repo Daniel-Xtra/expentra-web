@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { FormField } from '@/shared/components/FormField';
+import AppFormLabel from '@/shared/reusable/AppFormLabel';
 import { cn } from '@/lib/utils';
 import { formatRelativeTime } from '@/shared/utils/format';
 import { formatUserName } from '@/shared/utils/user';
@@ -71,15 +71,15 @@ export function ExpenseCommentsPanel({
   const itemCount = timeline.length;
 
   return (
-    <Card className={cn('overflow-hidden border-border/60', className)}>
+    <Card className={cn("overflow-hidden border-border/60", className)}>
       <CardHeader className="border-b border-border/50 py-3">
         <div className="flex items-center justify-between gap-2">
           <div>
             <CardTitle className="text-sm font-semibold">Comments</CardTitle>
             <CardDescription>
               {canComment
-                ? 'Discussion and policy exceptions for reviewers'
-                : 'Read-only after approval'}
+                ? "Discussion and policy exceptions for reviewers"
+                : "Read-only after approval"}
             </CardDescription>
           </div>
           {itemCount > 0 && (
@@ -102,7 +102,7 @@ export function ExpenseCommentsPanel({
           ) : (
             <ul className="divide-y divide-border/50">
               {timeline.map((item) => {
-                if (item.kind === 'policy-exception') {
+                if (item.kind === "policy-exception") {
                   const exception = item.data;
                   const authorName = formatUserName(exception.author);
 
@@ -115,13 +115,16 @@ export function ExpenseCommentsPanel({
                         className="flex size-8 shrink-0 items-center justify-center rounded-full bg-amber-100 text-amber-800"
                         aria-hidden
                       >
-                        <WarningCircleIcon className="size-4" weight="duotone" />
+                        <WarningCircleIcon
+                          className="size-4"
+                          weight="duotone"
+                        />
                       </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <div>
                             <p className="text-sm font-medium text-foreground">
-                              {exception.policyName ?? 'Policy exception'}
+                              {exception.policyName ?? "Policy exception"}
                             </p>
                             <p className="text-[11px] font-medium uppercase tracking-wide text-amber-800/80">
                               Policy justification
@@ -135,7 +138,9 @@ export function ExpenseCommentsPanel({
                           </time>
                         </div>
                         {exception.author && (
-                          <p className="mt-0.5 text-xs text-muted-foreground">{authorName}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {authorName}
+                          </p>
                         )}
                         <blockquote className="mt-2 border-l-2 border-amber-300/80 pl-3 text-sm leading-relaxed text-foreground/90">
                           {exception.justification}
@@ -158,7 +163,9 @@ export function ExpenseCommentsPanel({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-baseline justify-between gap-2">
-                        <p className="text-sm font-medium text-foreground">{authorName}</p>
+                        <p className="text-sm font-medium text-foreground">
+                          {authorName}
+                        </p>
                         <time
                           className="shrink-0 text-[11px] text-muted-foreground"
                           dateTime={comment.createdAt}
@@ -183,24 +190,32 @@ export function ExpenseCommentsPanel({
             onSubmit={form.handleSubmit((values) => onSubmit(values.body))}
             noValidate
           >
-            <FormField
-              label="Add a comment"
-              htmlFor="expense-comment"
-              error={form.formState.errors.body?.message}
-            >
+            <div className="space-y-1.5">
+              <AppFormLabel htmlFor="expense-comment">
+                Add a comment
+              </AppFormLabel>
               <Textarea
                 id="expense-comment"
                 rows={2}
                 placeholder="Write a comment for reviewers…"
                 className="resize-none bg-background"
                 aria-invalid={form.formState.errors.body ? true : undefined}
-                {...form.register('body')}
+                {...form.register("body")}
               />
-            </FormField>
+              {form.formState.errors.body?.message ? (
+                <p className="text-xs text-destructive">
+                  {form.formState.errors.body.message}
+                </p>
+              ) : null}
+            </div>
             <div className="mt-3 flex justify-end">
-              <Button type="submit" size="sm" disabled={isPosting}>
+              <Button
+                type="submit"
+                className="h-11 font-normal text-sm px-7 bg-primary-500"
+                disabled={isPosting}
+              >
                 <PaperPlaneTiltIcon className="size-4" />
-                {isPosting ? 'Posting…' : 'Post comment'}
+                {isPosting ? "Posting…" : "Post comment"}
               </Button>
             </div>
           </form>

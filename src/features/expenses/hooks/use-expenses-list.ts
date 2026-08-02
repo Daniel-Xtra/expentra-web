@@ -21,10 +21,28 @@ import { queryKeys } from '@/shared/api/query-keys';
 import { canAccess } from '@/shared/lib/capabilities';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
 
+function writeStatusParam(
+  setSearchParams: ReturnType<typeof useSearchParams>[1],
+  filter: string,
+) {
+  setSearchParams(
+    (previous) => {
+      const next = new URLSearchParams(previous);
+      if (filter === 'all') {
+        next.delete('status');
+      } else {
+        next.set('status', filter);
+      }
+      return next;
+    },
+    { replace: true },
+  );
+}
+
 export function useExpensesList() {
   const { authorization } = useAuth();
-  const [searchParams] = useSearchParams();
-  const [filter, setFilter] = useState(() => resolveInitialExpenseFilter(searchParams));
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [filter, setFilterState] = useState(() => resolveInitialExpenseFilter(searchParams));
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [sortBy, setSortBy] = useState<ExpenseListSortField>('updatedAt');
@@ -50,6 +68,11 @@ export function useExpensesList() {
     queryFn: () =>
       canViewAll ? fetchExpenseStatusCounts() : fetchMyExpenseStatusCounts(),
   });
+
+  const setFilter = (value: string) => {
+    setFilterState(value);
+    writeStatusParam(setSearchParams, value);
+  };
 
   const exportMutation = useMutation({
     mutationFn: () =>

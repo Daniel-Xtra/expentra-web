@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PolicyActiveBadge } from '@/features/policies/components/policy-badges';
+import { StatusPill } from '@/shared/components/StatusPill';
 import { formatLabel } from '@/shared/utils/format';
 import type { PolicyCatalogField } from '@/types/api';
 
@@ -41,25 +41,25 @@ export function CatalogFieldsTable({
   const showActions = canUpdate || canDelete;
 
   return (
-    <Table className="whitespace-normal">
+    <Table className="whitespace-nowrap">
       <TableHeader>
         <TableRow>
-          <TableHead className="w-[140px]">Label</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead className="w-[100px] whitespace-nowrap">Value type</TableHead>
-          <TableHead className="w-[90px] whitespace-nowrap">Operators</TableHead>
-          <TableHead className="w-[90px] whitespace-nowrap">Status</TableHead>
+          <TableHead className="w-[140px] capitalize">Label</TableHead>
+          <TableHead className="capitalize">Description</TableHead>
+          <TableHead className="w-[100px] whitespace-nowrap capitalize">Value type</TableHead>
+          <TableHead className="w-[90px] whitespace-nowrap capitalize">Operators</TableHead>
+          <TableHead className="w-[90px] whitespace-nowrap capitalize">Status</TableHead>
           {showActions ? (
-            <TableHead className="w-[72px] whitespace-nowrap text-right">Actions</TableHead>
+            <TableHead className="w-[72px] whitespace-nowrap text-right capitalize">Actions</TableHead>
           ) : null}
         </TableRow>
       </TableHeader>
       <TableBody>
         {fields.map((field) => (
           <TableRow key={field.reference}>
-            <TableCell className="align-top font-medium whitespace-normal">{field.label}</TableCell>
+            <TableCell className="align-top font-medium whitespace-nowrap">{field.label}</TableCell>
             <TableCell className="align-top whitespace-normal">
-              <p className="text-sm leading-relaxed break-words text-muted-foreground">
+              <p className="text-sm leading-relaxed wrap-break-word text-muted-foreground">
                 {field.description}
               </p>
             </TableCell>
@@ -68,7 +68,7 @@ export function CatalogFieldsTable({
               {field.operators.length}
             </TableCell>
             <TableCell className="whitespace-nowrap">
-              <PolicyActiveBadge isActive={field.isActive} />
+              <StatusPill active={field.isActive} />
             </TableCell>
             {showActions ? (
               <TableCell className="whitespace-nowrap text-right">

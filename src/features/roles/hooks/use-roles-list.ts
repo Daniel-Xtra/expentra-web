@@ -45,5 +45,7 @@ export function usePermissionsCatalog(enabled: boolean) {
     queryKey: queryKeys.roles.permissions(),
     queryFn: listPermissions,
     enabled,
+    staleTime: 60_000,
+    placeholderData: keepPreviousData,
   });
 }

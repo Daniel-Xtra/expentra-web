@@ -1,13 +1,6 @@
 import { cn } from '@/lib/utils';
 import { formatNgn } from '@/shared/utils/money';
-
-export type ChartSegment = {
-  key: string;
-  label: string;
-  value: number;
-  color: string;
-  detail?: string;
-};
+import type { ChartSegment } from '@/features/reports/chart-colors';
 
 function polarToCartesian(cx: number, cy: number, radius: number, angleDegrees: number) {
   const radians = ((angleDegrees - 90) * Math.PI) / 180;
@@ -123,68 +116,3 @@ export function DonutChart({
     </div>
   );
 }
-
-type HorizontalBarChartProps = {
-  segments: ChartSegment[];
-  className?: string;
-};
-
-export function HorizontalBarChart({ segments, className }: HorizontalBarChartProps) {
-  const total = segments.reduce((sum, segment) => sum + segment.value, 0);
-  if (total <= 0) {
-    return null;
-  }
-
-  const maxValue = Math.max(...segments.map((segment) => segment.value));
-
-  return (
-    <div className={cn('space-y-4 p-5', className)}>
-      {segments.map((segment) => {
-        const width = maxValue > 0 ? Math.max((segment.value / maxValue) * 100, 4) : 0;
-        return (
-          <div key={segment.key} className="space-y-1.5">
-            <div className="flex items-center justify-between gap-3 text-sm">
-              <span className="truncate font-medium text-foreground">{segment.label}</span>
-              <span className="shrink-0 tabular-nums text-muted-foreground">
-                {formatNgn(segment.value)}
-              </span>
-            </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-muted">
-              <div
-                className="h-full rounded-full transition-all"
-                style={{ width: `${width}%`, backgroundColor: segment.color }}
-              />
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-export const STATUS_CHART_COLORS = {
-  DRAFT: '#94a3b8',
-  SUBMITTED: '#3b82f6',
-  UNDER_REVIEW: '#f59e0b',
-  APPROVED: '#10b981',
-  REJECTED: '#ef4444',
-  REIMBURSED: '#6366f1',
-} as const;
-
-export const CATEGORY_CHART_COLORS = {
-  TRAVEL: '#8b5cf6',
-  MEALS: '#f97316',
-  SUPPLIES: '#0ea5e9',
-  OTHER: '#64748b',
-} as const;
-
-export const DEPARTMENT_CHART_COLORS = [
-  '#6366f1',
-  '#8b5cf6',
-  '#0ea5e9',
-  '#10b981',
-  '#f59e0b',
-  '#f97316',
-  '#ec4899',
-  '#14b8a6',
-] as const;

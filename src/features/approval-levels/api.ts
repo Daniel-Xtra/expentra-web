@@ -4,7 +4,6 @@ import type {
   ApiResponse,
   ApprovalLevelImpactSummary,
   ApprovalLevelResponse,
-  ApprovalLevelStatusCounts,
   ApprovalLevelWorkflowHealth,
   PaginatedResult,
 } from '@/types/api';
@@ -42,16 +41,6 @@ export async function listApprovalLevels(
   return { items: data.data ?? [], meta: data.meta };
 }
 
-export async function fetchApprovalLevelStatusCounts(): Promise<ApprovalLevelStatusCounts> {
-  const { data } = await api.get<ApiResponse<ApprovalLevelStatusCounts>>(
-    '/approval-levels/status-counts',
-  );
-  if (!data.data) {
-    throw new Error(data.message || 'Failed to load approval level status counts');
-  }
-  return data.data;
-}
-
 export async function fetchApprovalLevelWorkflowHealth(): Promise<ApprovalLevelWorkflowHealth> {
   const { data } = await api.get<ApiResponse<ApprovalLevelWorkflowHealth>>(
     '/approval-levels/workflow-health',
@@ -77,8 +66,7 @@ export async function fetchApprovalLevelImpact(
 export async function exportApprovalLevels(
   params: ListApprovalLevelsParams = {},
 ): Promise<string> {
-  const result = await queueExport('/approval-levels/export', params);
-  return result.message;
+  return queueExport('/approval-levels/export', params);
 }
 
 export async function createApprovalLevel(

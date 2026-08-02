@@ -29,15 +29,6 @@ export type AdminUpdateUserInput = {
   isActive?: boolean;
 };
 
-export type AdminCreateUserInput = {
-  email: string;
-  firstName: string;
-  lastName: string;
-  password: string;
-  roleReference?: string;
-  departmentReference?: string | null;
-};
-
 export async function fetchCurrentUser(): Promise<UserResponse> {
   const { data } = await api.get<ApiResponse<UserResponse>>('/users/me');
   if (!data.data) {
@@ -81,16 +72,7 @@ export async function fetchUserStatusCounts(): Promise<UserStatusCounts> {
 }
 
 export async function exportUsers(params: ListUsersParams = {}): Promise<string> {
-  const result = await queueExport('/users/export', params);
-  return result.message;
-}
-
-export async function getUser(reference: string): Promise<UserResponse> {
-  const { data } = await api.get<ApiResponse<UserResponse>>(`/users/${reference}`);
-  if (!data.data) {
-    throw new Error(data.message || 'User not found');
-  }
-  return data.data;
+  return queueExport('/users/export', params);
 }
 
 export async function fetchUserDetailSummary(reference: string): Promise<UserDetailSummary> {
@@ -108,14 +90,6 @@ export async function adminUpdateUser(
   const { data } = await api.patch<ApiResponse<UserResponse>>(`/users/${reference}`, input);
   if (!data.data) {
     throw new Error(data.message || 'Failed to update user');
-  }
-  return data.data;
-}
-
-export async function adminCreateUser(input: AdminCreateUserInput): Promise<UserResponse> {
-  const { data } = await api.post<ApiResponse<UserResponse>>('/users', input);
-  if (!data.data) {
-    throw new Error(data.message || 'Failed to create user');
   }
   return data.data;
 }

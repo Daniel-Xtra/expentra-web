@@ -8,6 +8,7 @@ import AppSelect from '@/shared/reusable/AppSelect';
 import AppTextarea from '@/shared/reusable/AppTextarea';
 import type { PolicyCatalogResponse } from '@/types/api';
 import type { EditPolicyFormValues, PolicyFormValues } from '../policy-config';
+import { asConditionForm } from '../policy-config';
 import { PolicyConditionBuilder } from './PolicyConditionBuilder';
 
 type PolicyFormFieldsProps = {
@@ -45,12 +46,6 @@ export function PolicyFormFields({
     <Form {...form}>
       <div className="space-y-6 font-sans">
         <section className="space-y-4">
-          <div>
-            <h3 className="text-sm font-semibold text-neutral-950">Policy details</h3>
-            <p className="text-xs/[16.8px] text-black-400">
-              Name the rule and choose how employees experience violations.
-            </p>
-          </div>
 
           <div className="space-y-3">
             <AppFormLabel htmlFor="policy-name" className="text-black-400">
@@ -143,7 +138,7 @@ export function PolicyFormFields({
           ) : (
             <PolicyConditionBuilder
               catalog={catalog}
-              form={form}
+              form={asConditionForm(form)}
               showTemplates={showTemplates}
             />
           )}

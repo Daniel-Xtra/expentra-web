@@ -1,6 +1,12 @@
 import type { CSSProperties } from 'react';
+import { cn } from '@/lib/utils';
 
-type IconProps = {
+const iconModules = import.meta.glob('../../assets/icons/*.{png,svg}', {
+  eager: true,
+  import: 'default',
+}) as Record<string, string>;
+
+type AppIconProps = {
   icon: string;
   height?: number;
   width?: number;
@@ -9,9 +15,22 @@ type IconProps = {
   type?: 'icons' | 'images';
   onClick?: () => void;
   style?: CSSProperties;
+  alt?: string;
 };
 
-export default function Icon({
+function resolveAssetSrc(
+  icon: string,
+  format: 'png' | 'svg',
+  type: 'icons' | 'images',
+): string {
+  if (type === 'icons') {
+    const key = `../../assets/icons/${icon}.${format}`;
+    return iconModules[key] ?? `/assets/${icon}.${format}`;
+  }
+  return `/assets/${icon}.${format}`;
+}
+
+export function AppIcon({
   icon,
   height = 24,
   width = 24,
@@ -20,14 +39,16 @@ export default function Icon({
   type = 'icons',
   onClick,
   style,
-}: IconProps) {
+  alt = '',
+}: AppIconProps) {
   return (
     <img
-      src={`/src/assets/${type}/${icon}.${format}`}
-      alt=""
+      src={resolveAssetSrc(icon, format, type)}
+      alt={alt}
       width={width}
       height={height}
-      className={className}
+      aria-hidden={alt ? undefined : true}
+      className={cn('inline-block object-contain', className)}
       onClick={onClick}
       style={style}
     />

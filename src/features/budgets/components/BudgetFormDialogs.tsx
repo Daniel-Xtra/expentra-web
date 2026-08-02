@@ -1,78 +1,22 @@
-import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
 import {
   CreateBudgetFormFields,
   EditBudgetFormFields,
 } from '@/features/budgets/components/BudgetFormFields';
 import type { BudgetFormValues, EditBudgetFormValues } from '@/features/budgets/schemas';
-import { AppModal } from '@/shared/reusable/AppModal';
+import { AppFormDialog } from '@/shared/reusable/AppFormDialog';
 import { formatLabel } from '@/shared/utils/format';
 import type { BudgetResponse, DepartmentResponse } from '@/types/api';
-
-type BudgetDialogShellProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description: string;
-  submitLabel: string;
-  loading: boolean;
-  onSubmit: () => void;
-  children: ReactNode;
-};
-
-function BudgetDialogShell({
-  open,
-  onOpenChange,
-  title,
-  description,
-  submitLabel,
-  loading,
-  onSubmit,
-  children,
-}: BudgetDialogShellProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <AppModal
-        title={title}
-        description={description}
-        className="sm:max-w-lg"
-        primaryFn={() => {}}
-        content={children}
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
-              disabled={loading}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
-              disabled={loading}
-              onClick={onSubmit}
-            >
-              {loading ? 'Saving…' : submitLabel}
-            </Button>
-          </>
-        }
-      />
-    </Dialog>
-  );
-}
 
 type CreateBudgetDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   form: UseFormReturn<BudgetFormValues>;
   loading: boolean;
+  catalogLoading?: boolean;
   onSubmit: () => void;
   departments: DepartmentResponse[];
+  currentYear: number;
 };
 
 export function CreateBudgetDialog({
@@ -80,11 +24,13 @@ export function CreateBudgetDialog({
   onOpenChange,
   form,
   loading,
+  catalogLoading = false,
   onSubmit,
   departments,
+  currentYear,
 }: CreateBudgetDialogProps) {
   return (
-    <BudgetDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add budget"
@@ -93,8 +39,13 @@ export function CreateBudgetDialog({
       loading={loading}
       onSubmit={onSubmit}
     >
-      <CreateBudgetFormFields form={form} departments={departments} />
-    </BudgetDialogShell>
+      <CreateBudgetFormFields
+        form={form}
+        departments={departments}
+        currentYear={currentYear}
+        catalogLoading={catalogLoading}
+      />
+    </AppFormDialog>
   );
 }
 
@@ -120,7 +71,7 @@ export function EditBudgetDialog({
     : 'this department';
 
   return (
-    <BudgetDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Edit budget"
@@ -134,6 +85,6 @@ export function EditBudgetDialog({
       onSubmit={onSubmit}
     >
       {budget ? <EditBudgetFormFields form={form} /> : null}
-    </BudgetDialogShell>
+    </AppFormDialog>
   );
 }

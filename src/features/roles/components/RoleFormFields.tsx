@@ -15,6 +15,7 @@ type RoleFormFieldsProps = {
   nameId: string;
   descriptionId: string;
   templates?: RoleTemplateResponse[];
+  templatesLoading?: boolean;
   showTemplate?: boolean;
 };
 
@@ -23,6 +24,7 @@ export function RoleFormFields({
   nameId,
   descriptionId,
   templates = [],
+  templatesLoading = false,
   showTemplate = false,
 }: RoleFormFieldsProps) {
   const selectedKey =
@@ -48,12 +50,13 @@ export function RoleFormFields({
             name="templateKey"
             render={({ field }) => (
               <AppSelect
-                placeholder="Select a template"
+                placeholder={templatesLoading ? 'Loading templates…' : 'Select a template'}
                 options={templateOptions}
                 value={field.value || BLANK_TEMPLATE_VALUE}
                 onChange={(value) =>
                   field.onChange(value === BLANK_TEMPLATE_VALUE ? '' : value)
                 }
+                disabled={templatesLoading}
               />
             )}
           />

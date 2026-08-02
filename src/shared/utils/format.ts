@@ -183,10 +183,24 @@ export function formatPermissionGroups(
   const byResource = new Map<string, PermissionResponse[]>();
 
   for (const [groupKey, permissions] of Object.entries(groups)) {
+    if (!Array.isArray(permissions)) {
+      continue;
+    }
+
     for (const permission of permissions) {
-      const resourceKey = permission.resource?.trim() || groupKey || 'general';
+      if (!permission?.reference) {
+        continue;
+      }
+
+      const resourceValue =
+        typeof permission.resource === 'string'
+          ? permission.resource.trim()
+          : String(permission.resource ?? '').trim();
+      const resourceKey = resourceValue || groupKey || 'general';
       const list = byResource.get(resourceKey) ?? [];
-      list.push(permission);
+      if (!list.some((item) => item.reference === permission.reference)) {
+        list.push(permission);
+      }
       byResource.set(resourceKey, list);
     }
   }
@@ -200,19 +214,6 @@ export function formatPermissionGroups(
       ),
     }))
     .sort((a, b) => a.label.localeCompare(b.label));
-}
-
-export function summarizePermissionResources(
-  permissions: Array<{ resource?: string | null }>,
-): string[] {
-  const resources = new Set<string>();
-  for (const permission of permissions) {
-    const resource = permission.resource?.trim();
-    if (resource) {
-      resources.add(formatLabel(resource));
-    }
-  }
-  return [...resources].sort((a, b) => a.localeCompare(b));
 }
 
 export function formatDate(value: string | Date | null | undefined): string {

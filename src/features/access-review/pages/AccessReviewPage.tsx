@@ -1,41 +1,47 @@
+import { DownloadSimpleIcon } from '@phosphor-icons/react';
 import { AccessReviewFilters } from '@/features/access-review/components/AccessReviewFilters';
 import { AccessReviewTable } from '@/features/access-review/components/AccessReviewTable';
 import { useAccessReview } from '@/features/access-review/hooks/use-access-review';
+import { Button } from '@/components/ui/button';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
-import { ErrorState } from '@/shared/components/ErrorState';
-import { LoadingState } from '@/shared/components/LoadingState';
+import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
+import { QueryStatus } from '@/shared/components/QueryStatus';
 
 export function AccessReviewPage() {
+  const { accessReview } = useActionCapabilities();
   const review = useAccessReview();
-  if (review.reviewQuery.isLoading && !review.reviewQuery.data) {
-    return <LoadingState message="Loading access review…" />;
-  }
-
-  if (review.reviewQuery.isError) {
-    return (
-      <ErrorState
-        message={(review.reviewQuery.error as Error).message}
-        onRetry={() => void review.reviewQuery.refetch()}
-        retrying={review.reviewQuery.isFetching}
-      />
-    );
-  }
 
   return (
+    <QueryStatus query={review.reviewQuery} loadingMessage="Loading access review…">
     <PageShell wide>
       <PageHeader
         title="Access review"
-        description="Effective permissions and capabilities for every active user."
-        meta={`${review.totalUsers} active ${review.totalUsers === 1 ? 'user' : 'users'}`}
-        backTo="/admin/audit-logs"
-        backLabel="Audit logs"
-     
+        description="Read-only inventory of active users’ effective roles, permissions, and capabilities. Export for review; change access from Users or Roles."
+        actions={
+          accessReview.export ? (
+            <Button
+              className="h-11 font-normal text-sm px-7 bg-primary-500"
+              disabled={review.exportMutation.isPending || review.totalUsers === 0}
+            onClick={() => void review.exportMutation.mutateAsync()}
+          >
+            <DownloadSimpleIcon className="size-4" />
+            {review.exportMutation.isPending ? "Exporting…" : "Export Access Review"}
+          </Button>
+        ) : null}
       />
-
-      <AccessReviewFilters search={review.search} onSearchChange={review.setSearch} />
+      <AccessReviewFilters
+        search={review.search}
+        onSearchChange={review.setSearch}
+        roleFilter={review.roleFilter}
+        onRoleFilterChange={review.setRoleFilter}
+        departmentFilter={review.departmentFilter}
+        onDepartmentFilterChange={review.setDepartmentFilter}
+        roleOptions={review.roleOptions}
+        departmentOptions={review.departmentOptions}
+      />
 
       <DataCard>
         {review.filteredRows.length === 0 ? (
@@ -44,7 +50,7 @@ export function AccessReviewPage() {
             description={
               review.totalUsers === 0
                 ? 'Active users will appear here once accounts are provisioned.'
-                : 'Try a different search term.'
+                : 'Try a different search or filter.'
             }
           />
         ) : (
@@ -52,5 +58,6 @@ export function AccessReviewPage() {
         )}
       </DataCard>
     </PageShell>
+    </QueryStatus>
   );
 }

@@ -3,12 +3,9 @@ import { useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { listDepartments } from '@/features/departments/api';
 import { listRoles } from '@/features/roles/api';
-import {
-  fetchUserStatusCounts,
-  listUsers,
-} from '@/features/users/api';
-import { resolveUserListFilter } from '@/features/users/components/UserStatusSummary';
+import { fetchUserStatusCounts, listUsers } from '@/features/users/api';
 import { ALL_VALUE } from '@/features/users/constants';
+import { resolveUserListFilter } from '@/features/users/components/UserStatusSummary';
 import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { queryKeys } from '@/shared/api/query-keys';
 import { DEFAULT_PAGE_SIZE } from '@/shared/lib/pagination';
@@ -19,33 +16,36 @@ type UseUsersListOptions = {
 
 export function useUsersList({ enabled }: UseUsersListOptions) {
   const [searchParams] = useSearchParams();
-  const initialDepartmentFilter = searchParams.get('department') ?? ALL_VALUE;
+  const departmentFromUrl = searchParams.get('department');
 
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [departmentFilter, setDepartmentFilter] = useState(initialDepartmentFilter);
-  const [roleFilter, setRoleFilter] = useState(ALL_VALUE);
   const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [roleReference, setRoleReference] = useState(ALL_VALUE);
+  const [departmentReference, setDepartmentReference] = useState(
+    departmentFromUrl && departmentFromUrl !== ALL_VALUE ? departmentFromUrl : ALL_VALUE,
+  );
 
   const debouncedSearch = useDebouncedValue(search);
-  const listFilterParams = resolveUserListFilter(statusFilter);
+  const statusParams = resolveUserListFilter(statusFilter);
 
   const listParams = {
     page,
     limit: DEFAULT_PAGE_SIZE,
     search: debouncedSearch || undefined,
-    departmentReference: departmentFilter !== ALL_VALUE ? departmentFilter : undefined,
-    roleReference: roleFilter !== ALL_VALUE ? roleFilter : undefined,
-    ...listFilterParams,
+    departmentReference:
+      departmentReference !== ALL_VALUE ? departmentReference : undefined,
+    roleReference: roleReference !== ALL_VALUE ? roleReference : undefined,
+    ...statusParams,
   };
 
   const usersQuery = useQuery({
     queryKey: queryKeys.users.list({
       debouncedSearch,
       page,
+      departmentReference: listParams.departmentReference,
+      roleReference: listParams.roleReference,
       statusFilter,
-      departmentFilter,
-      roleFilter,
     }),
     queryFn: () => listUsers(listParams),
     enabled,
@@ -61,43 +61,52 @@ export function useUsersList({ enabled }: UseUsersListOptions) {
   return {
     search,
     setSearch,
-    statusFilter,
-    setStatusFilter,
-    departmentFilter,
-    setDepartmentFilter,
-    roleFilter,
-    setRoleFilter,
     page,
     setPage,
+    statusFilter,
+    setStatusFilter: (value: string) => {
+      setStatusFilter(value);
+      setPage(1);
+    },
+    roleReference,
+    setRoleReference: (value: string) => {
+      setRoleReference(value);
+      setPage(1);
+    },
+    departmentReference,
+    setDepartmentReference: (value: string) => {
+      setDepartmentReference(value);
+      setPage(1);
+    },
     debouncedSearch,
-    listFilterParams,
     usersQuery,
     statusCountsQuery,
     exportParams: {
       search: debouncedSearch || undefined,
-      departmentReference: departmentFilter !== ALL_VALUE ? departmentFilter : undefined,
-      roleReference: roleFilter !== ALL_VALUE ? roleFilter : undefined,
-      ...listFilterParams,
+      departmentReference: listParams.departmentReference,
+      roleReference: listParams.roleReference,
+      ...statusParams,
     },
   };
 }
 
-export function useUserCatalogData(enabled: boolean) {
+export function useUserCatalogData(catalogEnabled: boolean) {
   const allRolesQuery = useQuery({
     queryKey: queryKeys.roles.catalog(),
     queryFn: () => listRoles({ page: 1, limit: 100 }),
-    enabled,
+    enabled: catalogEnabled,
   });
 
   const departmentsQuery = useQuery({
     queryKey: queryKeys.departments.catalog(),
     queryFn: () => listDepartments({ page: 1, limit: 100 }),
-    enabled,
+    enabled: catalogEnabled,
   });
 
   return {
     allRoles: allRolesQuery.data?.items ?? [],
     departments: departmentsQuery.data?.items ?? [],
+    isLoading: allRolesQuery.isLoading || departmentsQuery.isLoading,
     allRolesQuery,
     departmentsQuery,
   };

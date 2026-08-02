@@ -3,11 +3,7 @@ import { defineConfig, loadEnv, type Plugin } from "vite"
 import react from "@vitejs/plugin-react"
 import path from "path"
 
-/**
- * Injects CSP into production HTML using VITE_API_URL from the build environment.
- * API origins stay in Vercel env vars (not committed). frame-ancestors is not
- * enforceable via meta tags — clickjacking is covered by X-Frame-Options in vercel.json.
- */
+/** Injects CSP into production HTML using VITE_API_URL from the build environment. */
 function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
   return {
     name: "content-security-policy",
@@ -28,6 +24,7 @@ function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
         "img-src 'self' data: blob:",
         `connect-src ${connectSrc}`,
         "frame-src 'self' blob:",
+        "frame-ancestors 'none'",
         "object-src 'none'",
         "base-uri 'self'",
         "form-action 'self'",
@@ -43,12 +40,7 @@ function contentSecurityPolicyPlugin(mode: string, apiUrl: string): Plugin {
 
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), "")
-  const apiUrl = env.VITE_API_URL ?? "/api/v1"
-  const proxyTarget =
-    env.VITE_API_PROXY_TARGET ??
-    (apiUrl.startsWith("http://") || apiUrl.startsWith("https://")
-      ? new URL(apiUrl).origin
-      : undefined)
+  const apiUrl = env.VITE_API_URL || "/api/v1"
 
   return {
     plugins: [react(), contentSecurityPolicyPlugin(mode, apiUrl)],
@@ -61,16 +53,6 @@ export default defineConfig(({ mode }) => {
       // Production source maps are omitted to avoid exposing client source publicly.
       sourcemap: false,
     },
-    server: proxyTarget
-      ? {
-          proxy: {
-            "/api": {
-              target: proxyTarget,
-              changeOrigin: true,
-            },
-          },
-        }
-      : undefined,
     test: {
       environment: "jsdom",
       globals: true,

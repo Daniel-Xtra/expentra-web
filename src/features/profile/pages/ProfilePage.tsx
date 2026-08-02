@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import { PencilSimpleIcon } from '@phosphor-icons/react';
-import shieldCheckIconUrl from '@/assets/icons/shield-check.png';
 import { UserAvatar } from '@/shared/components/UserAvatar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { AssetIcon } from '@/shared/components/AssetIcon';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ProfileAccountDetails } from '@/features/profile/components/ProfileAccountDetails';
 import { ProfileQuickLinks } from '@/features/profile/components/ProfileQuickLinks';
+import { EditNameDialog } from '@/features/profile/components/modals/edit-name';
 import { useProfile } from '@/features/profile/hooks/use-profile';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 import { OrgGrantsPanel } from '@/shared/components/OrgGrantsPanel';
 import { ErrorState } from '@/shared/components/ErrorState';
 
 import { LoadingState } from '@/shared/components/LoadingState';
 import { PageHeader } from '@/shared/components/PageHeader';
 import { PageShell } from '@/shared/components/PageShell';
-import { toastError, toastSuccess } from '@/shared/lib/toast';
 import { formatRoleName } from '@/shared/utils/format';
 import { formatUserName } from '@/shared/utils/user';
 import { cn } from '@/lib/utils';
@@ -24,44 +24,33 @@ import { DialogTrigger } from '@/components/ui/dialog';
 import { Dialog } from '@/components/ui/dialog';
 import ChangePassword from '../components/modals/change-password';
 
-async function copyToClipboard(text: string) {
-  try {
-    await navigator.clipboard.writeText(text);
-    toastSuccess('Copied to clipboard');
-  } catch {
-    toastError(null, 'Failed to copy');
-  }
-}
-
 export function ProfilePage() {
-  // const [showEditName, setShowEditName] = useState(false);
+  const { refreshProfile } = useAuth();
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const [showEditName, setShowEditName] = useState(false);
   const profile = useProfile();
-  // const newPassword =
-  //   useWatch({ control: profile.passwordForm.control, name: 'newPassword' }) ?? '';
 
-  const departmentOverviewPath =
+  const departmentPath =
     profile.managedDepartments.length > 0
       ? profile.managedDepartments.length === 1
-        ? `/department-overview/${profile.managedDepartments[0].reference}`
-        : '/department-overview'
+        ? `/department/${profile.managedDepartments[0].reference}`
+        : '/department'
       : undefined;
 
-  if (profile.profileQuery.isLoading) {
+  if (profile.isLoading) {
     return <LoadingState layout="detail" message="Loading profile…" />;
   }
 
-  if (profile.profileQuery.isError || !profile.profileQuery.data) {
+  if (!profile.user) {
     return (
       <ErrorState
-        message={(profile.profileQuery.error as Error)?.message ?? 'Profile not found'}
-        onRetry={() => void profile.profileQuery.refetch()}
-        retrying={profile.profileQuery.isFetching}
+        message="Profile not found"
+        onRetry={() => void refreshProfile()}
       />
     );
   }
 
-  const user = profile.profileQuery.data;
+  const user = profile.user;
   const displayName = formatUserName(user);
 
   const openEditName = () => {
@@ -69,15 +58,8 @@ export function ProfilePage() {
       firstName: user.firstName ?? '',
       lastName: user.lastName ?? '',
     });
-    // setShowEditName(true);
+    setShowEditName(true);
   };
-
-  // const handleChangePasswordOpenChange = (open: boolean) => {
-  //   setShowChangePassword(open);
-  //   if (!open) {
-  //     profile.passwordForm.reset();
-  //   }
-  // };
 
   return (
     <PageShell wide>
@@ -107,33 +89,33 @@ export function ProfilePage() {
                     <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary">
                       {user.role?.name
                         ? formatRoleName(user.role.name)
-                        : "Employee"}
+                        : 'Employee'}
                     </span>
                     <span
                       className={cn(
-                        "inline-flex items-center gap-1 text-xs font-medium",
+                        'inline-flex items-center gap-1 text-xs font-medium',
                         user.isEmailVerified
-                          ? "text-emerald-700"
-                          : "text-muted-foreground",
+                          ? 'text-emerald-700'
+                          : 'text-muted-foreground',
                       )}
                     >
                       {user.isEmailVerified ? (
                         <>
-                          <AssetIcon
-                            src={shieldCheckIconUrl}
-                            className="size-3.5"
-                          />
+                          <AppIcon icon="shield-check" className="size-3.5" />
                           Verified
                         </>
                       ) : (
-                        "Email not verified"
+                        'Email not verified'
                       )}
                     </span>
                   </div>
                 </div>
               </div>
 
-              <Button className="h-11 font-normal text-sm px-7 bg-primary-500" onClick={openEditName}>
+              <Button
+                className="h-11 bg-primary-500 px-7 text-sm font-normal"
+                onClick={openEditName}
+              >
                 <PencilSimpleIcon className="size-4" />
                 Edit name
               </Button>
@@ -142,17 +124,14 @@ export function ProfilePage() {
 
           <div className="grid gap-4 lg:grid-cols-3 lg:items-start">
             <div className="space-y-4 lg:col-span-2">
-              <ProfileAccountDetails
-                user={user}
-                onCopyReference={(reference) => void copyToClipboard(reference)}
-              />
+              <ProfileAccountDetails user={user} />
             </div>
 
             <div className="space-y-4">
               <ProfileQuickLinks
                 variant="stack"
                 canReadNotifications={profile.canReadNotifications}
-                departmentOverviewPath={departmentOverviewPath}
+                departmentPath={departmentPath}
               />
 
               {(profile.orgGrants.length > 0 ||
@@ -172,7 +151,7 @@ export function ProfilePage() {
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
-          <Card className="max-w-xl border-border/60">
+          <Card className="w-full max-w-xl border-border/60">
             <CardContent className="flex flex-col gap-4 py-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
                 <h2 className="mb-1 text-sm font-semibold text-foreground">
@@ -201,76 +180,24 @@ export function ProfilePage() {
         </TabsContent>
       </Tabs>
 
-      {/* <FormDialog
-        title="Change your password"
-        description="Please enter your old password and new password"
-        open={showChangePassword}
-        onOpenChange={handleChangePasswordOpenChange}
-        submitLabel="Save"
-        loading={
-          profile.passwordForm.formState.isSubmitting ||
-          profile.changePasswordMutation.isPending
-        }
-        className="sm:max-w-md"
-        contentClassName="space-y-5 py-6"
-        onSubmit={profile.passwordForm.handleSubmit(async (values) => {
-          await profile.changePasswordMutation.mutateAsync(values);
-          setShowChangePassword(false);
-        })}
-      >
-        <PasswordInputField
-          register={profile.passwordForm.register}
-          name="currentPassword"
-          label="Old password"
-          autoComplete="current-password"
-          error={profile.passwordForm.formState.errors.currentPassword?.message}
-        />
-        <PasswordInputField
-          register={profile.passwordForm.register}
-          name="newPassword"
-          label="New password"
-          autoComplete="new-password"
-          error={profile.passwordForm.formState.errors.newPassword?.message}
-          criteriaValue={newPassword}
-          showCriteria
-        />
-      </FormDialog>
-
-      <FormDialog
-        title="Edit name"
+      <EditNameDialog
         open={showEditName}
-        onOpenChange={setShowEditName}
-        submitLabel="Save changes"
+        onOpenChange={(open) => {
+          setShowEditName(open);
+          if (!open) {
+            profile.profileForm.reset({
+              firstName: user.firstName ?? '',
+              lastName: user.lastName ?? '',
+            });
+          }
+        }}
+        form={profile.profileForm}
         loading={profile.updateMutation.isPending}
-        onSubmit={profile.profileForm.handleSubmit((values) =>
-          profile.updateMutation.mutateAsync(values).then(() => setShowEditName(false)),
-        )}
-      >
-        <div className="space-y-4">
-          <FormField
-            label="First name"
-            htmlFor="first-name"
-            error={profile.profileForm.formState.errors.firstName?.message}
-          >
-            <Input
-              id="first-name"
-              aria-invalid={profile.profileForm.formState.errors.firstName ? true : undefined}
-              {...profile.profileForm.register('firstName')}
-            />
-          </FormField>
-          <FormField
-            label="Last name"
-            htmlFor="last-name"
-            error={profile.profileForm.formState.errors.lastName?.message}
-          >
-            <Input
-              id="last-name"
-              aria-invalid={profile.profileForm.formState.errors.lastName ? true : undefined}
-              {...profile.profileForm.register('lastName')}
-            />
-          </FormField>
-        </div>
-      </FormDialog> */}
+        onSubmit={async (values) => {
+          await profile.updateMutation.mutateAsync(values);
+          setShowEditName(false);
+        }}
+      />
     </PageShell>
   );
 }

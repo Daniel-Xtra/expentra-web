@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import { ArrowSquareOutIcon } from '@phosphor-icons/react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  fetchDepartmentBudgetForecast,
+  fetchManagedDepartmentBudgetForecast,
+} from '@/features/departments/api';
 import { DataCard } from '@/shared/components/DataCard';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { EmptyState } from '@/shared/components/EmptyState';
+import { queryKeys } from '@/shared/api/query-keys';
 import { cn } from '@/lib/utils';
 import { formatNgn } from '@/shared/utils/money';
 import type { BudgetSummaryResponse, DepartmentResponse } from '@/types/api';
@@ -25,6 +31,7 @@ type DepartmentBudgetSectionProps = {
   summary?: BudgetSummaryResponse;
   isLoading?: boolean;
   readOnly?: boolean;
+  managed?: boolean;
 };
 
 function clampPercent(value: number) {
@@ -148,6 +155,7 @@ export function DepartmentBudgetSection({
   summary,
   isLoading,
   readOnly = false,
+  managed = false,
 }: DepartmentBudgetSectionProps) {
   const { budget } = useActionCapabilities();
   const canManageBudgets = budget.update || budget.create;
@@ -155,6 +163,18 @@ export function DepartmentBudgetSection({
   const pendingCommitted = summary
     ? Math.max(summary.committedAmount - summary.reimbursedAmount, 0)
     : 0;
+  const parsedYear = Number(year);
+
+  const forecastQuery = useQuery({
+    queryKey: queryKeys.departments.budgetForecast(department.reference, year, managed),
+    queryFn: () =>
+      managed
+        ? fetchManagedDepartmentBudgetForecast(department.reference, parsedYear)
+        : fetchDepartmentBudgetForecast(department.reference, parsedYear),
+    enabled: Boolean(department.reference) && Number.isFinite(parsedYear) && Boolean(summary?.hasBudget),
+  });
+
+  const forecast = forecastQuery.data;
 
   return (
     <DataCard
@@ -195,13 +215,6 @@ export function DepartmentBudgetSection({
             readOnly
               ? `${department.name} does not have an active budget for ${year}. Contact administration if a limit should be set.`
               : `${department.name} does not have an active budget for ${year}. Set a limit in administration to track utilization.`
-          }
-          action={
-            readOnly || !canManageBudgets ? undefined : (
-              <Button size="sm" asChild>
-                <Link to="/admin/budgets">Set up budget</Link>
-              </Button>
-            )
           }
         />
       ) : (
@@ -282,6 +295,36 @@ export function DepartmentBudgetSection({
               </div>
             </CardContent>
           </Card>
+
+          {forecast?.hasBudget ? (
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="rounded-lg border border-border/60 px-3 py-3">
+                <p className="text-[11px] text-muted-foreground">Monthly burn</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {formatNgn(forecast.monthlyBurnRate ?? 0)}
+                </p>
+              </div>
+              <div className="rounded-lg border border-border/60 px-3 py-3">
+                <p className="text-[11px] text-muted-foreground">Projected year-end</p>
+                <p className="text-sm font-semibold tabular-nums">
+                  {formatNgn(forecast.projectedYearEndCommitted ?? 0)}
+                </p>
+              </div>
+              <div
+                className={cn(
+                  'rounded-lg border px-3 py-3',
+                  forecast.projectedOverrun
+                    ? 'border-amber-500/40 bg-amber-500/5'
+                    : 'border-border/60',
+                )}
+              >
+                <p className="text-[11px] text-muted-foreground">Forecast</p>
+                <p className="text-sm font-semibold">
+                  {forecast.projectedOverrun ? 'Overrun risk' : 'On track'}
+                </p>
+              </div>
+            </div>
+          ) : null}
         </div>
       )}
     </DataCard>

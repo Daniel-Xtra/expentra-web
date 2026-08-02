@@ -20,8 +20,3 @@ export type PaginatedResult<T> = {
   items: T[];
   meta?: PaginationMeta;
 };
-
-export type ExportQueuedResult = {
-  exportReference: string;
-  status: string;
-};

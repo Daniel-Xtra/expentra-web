@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/table';
 import { ApprovalLevelAssigneeCell } from '@/features/approval-levels/components/ApprovalLevelAssigneeCell';
 import { ApprovalLevelChainStepCell } from '@/features/approval-levels/components/ApprovalLevelChainStepCell';
-import { ApprovalLevelStatusBadge } from '@/features/approval-levels/components/ApprovalLevelStatusBadge';
+import { StatusPill } from '@/shared/components/StatusPill';
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { formatLabel } from '@/shared/utils/format';
 import type { ApprovalLevelResponse } from '@/types/api';
@@ -102,7 +102,7 @@ export function ApprovalLevelsTable({
                 <ApprovalLevelAssigneeCell level={item} />
               </TableCell>
               <TableCell className="py-4">
-                <ApprovalLevelStatusBadge isActive={item.isActive} />
+                <StatusPill active={item.isActive} />
               </TableCell>
               {showActions ? (
                 <TableCell className="pr-5 text-right">

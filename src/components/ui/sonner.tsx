@@ -1,18 +1,49 @@
+import {
+  CheckCircleIcon,
+  InfoIcon,
+  WarningCircleIcon,
+  XIcon,
+} from '@phosphor-icons/react';
 import { Toaster as Sonner, type ToasterProps } from 'sonner';
+import { cn } from '@/lib/utils';
 
-function Toaster({ ...props }: ToasterProps) {
+function Toaster({ className, toastOptions, icons, ...props }: ToasterProps) {
   return (
     <Sonner
       theme="light"
-      className="toaster group"
+      className={cn('toaster group', className)}
+      position="top-right"
+      closeButton
+      expand={false}
+      visibleToasts={3}
+      gap={10}
+      duration={4000}
+      offset={{ top: 64, right: 16 }}
+      mobileOffset={{ top: 56, right: 12, left: 12 }}
+      icons={{
+        success: (
+          <CheckCircleIcon
+            className="size-5 text-success-800"
+            weight="fill"
+            aria-hidden
+          />
+        ),
+        error: (
+          <WarningCircleIcon
+            className="size-5 text-error-500"
+            weight="fill"
+            aria-hidden
+          />
+        ),
+        info: (
+          <InfoIcon className="size-5 text-primary-500" weight="fill" aria-hidden />
+        ),
+        close: <XIcon className="size-3.5" weight="bold" aria-hidden />,
+        ...icons,
+      }}
       toastOptions={{
-        classNames: {
-          toast:
-            'group toast group-[.toaster]:bg-popover group-[.toaster]:text-popover-foreground group-[.toaster]:border-border group-[.toaster]:shadow-lg',
-          description: 'group-[.toast]:text-muted-foreground',
-          actionButton: 'group-[.toast]:bg-primary group-[.toast]:text-primary-foreground',
-          cancelButton: 'group-[.toast]:bg-muted group-[.toast]:text-muted-foreground',
-        },
+        closeButtonAriaLabel: 'Close notification',
+        ...toastOptions,
       }}
       {...props}
     />

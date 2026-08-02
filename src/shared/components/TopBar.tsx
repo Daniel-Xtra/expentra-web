@@ -4,7 +4,6 @@ import {
   HouseIcon,
   ListIcon,
 } from '@phosphor-icons/react';
-import notificationIconUrl from '@/assets/icons/notification.png';
 import { Button } from '@/components/ui/button';
 import {
   Breadcrumb,
@@ -18,7 +17,7 @@ import { useUnreadNotifications } from '@/features/notifications/hooks/use-unrea
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { getBreadcrumbs } from '@/shared/lib/breadcrumbs';
 import { hasNavAccess, NOTIFICATION_READ_ACCESS } from '@/shared/navigation';
-import { AssetIcon } from '@/shared/components/AssetIcon';
+import { AppIcon } from '@/shared/reusable/AppIcon';
 import { NavbarProfileDropdown } from '@/shared/components/NavbarProfileDropdown';
 
 type TopBarProps = {
@@ -96,7 +95,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
               aria-label="Notifications"
               className="relative flex size-9 shrink-0 cursor-pointer items-center justify-center rounded-md border border-border bg-card text-foreground transition-colors hover:bg-muted/60"
             >
-              <AssetIcon src={notificationIconUrl} className="size-[18px]" />
+              <AppIcon icon="notification" className="size-[18px]" />
               {unreadCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 flex size-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-white">
                   {unreadCount > 9 ? '9+' : unreadCount}
@@ -111,7 +110,7 @@ export function TopBar({ onMenuClick }: TopBarProps) {
         {canReadNotifications && (
           <Button variant="ghost" size="icon-sm" className="relative sm:hidden" asChild>
             <Link to="/notifications" aria-label="Notifications">
-              <AssetIcon src={notificationIconUrl} className="size-4" />
+              <AppIcon icon="notification" className="size-4" />
               {unreadCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 flex size-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-semibold text-white">
                   {unreadCount > 9 ? '9+' : unreadCount}

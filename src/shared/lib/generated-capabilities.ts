@@ -59,7 +59,8 @@ export const GENERATED_CAPABILITY_KEYS = [
   "role:delete",
   "role:read",
   "role:update",
-  "user:create",
   "user:read",
   "user:update"
 ] as const;
+
+export type GeneratedCapabilityKey = (typeof GENERATED_CAPABILITY_KEYS)[number];

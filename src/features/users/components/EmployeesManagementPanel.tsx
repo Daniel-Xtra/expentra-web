@@ -27,30 +27,21 @@ export function EmployeesManagementPanel({
           usersList.setPage(1);
         }}
         statusFilter={usersList.statusFilter}
-        onStatusFilterChange={(value) => {
-          usersList.setStatusFilter(value);
-          usersList.setPage(1);
-        }}
-        departmentFilter={usersList.departmentFilter}
-        onDepartmentFilterChange={(value) => {
-          usersList.setDepartmentFilter(value);
-          usersList.setPage(1);
-        }}
-        roleFilter={usersList.roleFilter}
-        onRoleFilterChange={(value) => {
-          usersList.setRoleFilter(value);
-          usersList.setPage(1);
-        }}
+        onStatusFilterChange={usersList.setStatusFilter}
+        statusCounts={usersList.statusCountsQuery.data}
+        statusCountsLoading={usersList.statusCountsQuery.isLoading}
+        roleReference={usersList.roleReference}
+        onRoleReferenceChange={usersList.setRoleReference}
+        departmentReference={usersList.departmentReference}
+        onDepartmentReferenceChange={usersList.setDepartmentReference}
+        roles={userCatalog.allRoles}
         departments={userCatalog.departments}
-        allRoles={userCatalog.allRoles}
         users={users}
         usersQueryError={
           usersList.usersQuery.isError ? (usersList.usersQuery.error as Error) : null
         }
         onRetryUsers={() => void usersList.usersQuery.refetch()}
         usersRetrying={usersList.usersQuery.isFetching}
-        statusCounts={usersList.statusCountsQuery.data}
-        statusCountsLoading={usersList.statusCountsQuery.isLoading}
         meta={meta}
         onPageChange={usersList.setPage}
         selectedUsers={mutations.selectedUsers}
@@ -71,6 +62,7 @@ export function EmployeesManagementPanel({
         onOpenChange={(open) => !open && mutations.setEditingUser(null)}
         form={mutations.editEmployeeForm}
         loading={mutations.updateUserMutation.isPending}
+        catalogLoading={userCatalog.isLoading}
         onSubmit={mutations.editEmployeeForm.handleSubmit((values) => {
           if (!mutations.editingUser) return;
           return mutations.updateUserMutation.mutateAsync({

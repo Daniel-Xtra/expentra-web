@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { AccountSuspensionRedirect } from '@/features/auth/components/AccountSuspensionRedirect';
 import { usePageMetadataContext } from '@/shared/context/page-metadata-context';
 import { applyDocumentMetadata } from '@/shared/lib/document-metadata';
 import { getRouteMetadata } from '@/shared/lib/route-metadata';
@@ -25,6 +26,7 @@ export function DocumentMetadataLayout() {
   return (
     <>
       <DocumentMetadataSync />
+      <AccountSuspensionRedirect />
       <Outlet />
     </>
   );

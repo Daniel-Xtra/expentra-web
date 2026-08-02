@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { PolicyActiveBadge } from '@/features/policies/components/policy-badges';
+import { StatusPill } from '@/shared/components/StatusPill';
 import type { PolicyCatalogTemplate } from '@/types/api';
 
 type CatalogTemplatesTableProps = {
@@ -72,7 +72,7 @@ export function CatalogTemplatesTable({
             </TableCell>
             <TableCell className="whitespace-nowrap">{template.conditions.length}</TableCell>
             <TableCell className="whitespace-nowrap">
-              <PolicyActiveBadge isActive={template.isActive} />
+              <StatusPill active={template.isActive} />
             </TableCell>
             {showActions ? (
               <TableCell className="whitespace-nowrap text-right">

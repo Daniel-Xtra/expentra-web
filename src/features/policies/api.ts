@@ -53,14 +53,6 @@ export async function listPolicies(): Promise<ExpensePolicyResponse[]> {
   return data.data ?? [];
 }
 
-export async function getPolicy(reference: string): Promise<ExpensePolicyResponse> {
-  const { data } = await api.get<ApiResponse<ExpensePolicyResponse>>(`/policies/${reference}`);
-  if (!data.data) {
-    throw new Error(data.message || 'Policy not found');
-  }
-  return data.data;
-}
-
 export async function createPolicy(input: CreatePolicyInput): Promise<ExpensePolicyResponse> {
   const { data } = await api.post<ApiResponse<ExpensePolicyResponse>>('/policies', input);
   if (!data.data) {

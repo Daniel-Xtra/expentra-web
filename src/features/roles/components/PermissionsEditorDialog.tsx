@@ -1,10 +1,7 @@
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
+import type { ReactNode } from 'react';
 import { OrgGrantsCallout } from '@/shared/components/OrgGrantsPanel';
-import { LoadingState } from '@/shared/components/LoadingState';
-import { AppModal } from '@/shared/reusable/AppModal';
 import AppCheckbox from '@/shared/reusable/AppCheckbox';
+import { AppFormDialog } from '@/shared/reusable/AppFormDialog';
 import {
   formatPermissionLabel,
   formatRoleName,
@@ -16,11 +13,13 @@ import type { RoleResponse } from '@/types/api';
 type PermissionsEditorDialogProps = {
   open: boolean;
   role: RoleResponse | null;
-  selectedCount: number;
-  loading: boolean;
+  roleLoading: boolean;
+  catalogLoading: boolean;
+  catalogError?: Error | null;
   saving: boolean;
   applyingTemplate?: boolean;
   permissionGroups: PermissionGroup[];
+  selectedCount: number;
   templates?: RoleTemplateResponse[];
   isSelected: (reference: string) => boolean;
   onToggle: (reference: string, checked: boolean) => void;
@@ -29,125 +28,114 @@ type PermissionsEditorDialogProps = {
   onConfirm: () => void;
 };
 
+function PermissionsLoadingState({ message }: { message: string }) {
+  return (
+    <div className="flex min-h-24 items-center justify-center">
+      <p className="text-sm text-black-400">{message}</p>
+    </div>
+  );
+}
+
 export function PermissionsEditorDialog({
   open,
   role,
-  selectedCount,
-  loading,
+  roleLoading,
+  catalogLoading,
+  catalogError = null,
   saving,
   applyingTemplate = false,
   permissionGroups,
+  selectedCount,
   isSelected,
   onToggle,
   onCancel,
   onConfirm,
 }: PermissionsEditorDialogProps) {
-  const actionsDisabled = saving || loading || applyingTemplate;
-
+  const showCatalogLoading = catalogLoading && permissionGroups.length === 0;
 
   const description = role
     ? `${selectedCount} permission${selectedCount === 1 ? '' : 's'} selected for ${formatRoleName(role.name)}. Checked items are currently assigned to this role.`
-    : `${selectedCount} permission${selectedCount === 1 ? '' : 's'} selected. Checked items are currently assigned to this role.`;
+    : roleLoading
+      ? 'Loading role permissions…'
+      : `${selectedCount} permission${selectedCount === 1 ? '' : 's'} selected. Checked items are currently assigned to this role.`;
 
-  return (
-    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-      <AppModal
-        title="Edit permissions"
-        description={description}
-        className="sm:max-w-lg"
-        primaryFn={() => {}}
-        content={
-          <div className="space-y-6 -m-6! font-sans">
-            {/* {effectiveAreas.length > 0 ? (
-              <div className="rounded-lg border border-black-50 bg-neutral-100 px-4 py-3">
-                <p className="text-xs font-semibold text-neutral-950">
-                  Effective access areas
-                </p>
-                <p className="mt-1 text-xs/[16.8px] text-black-400">
-                  Can manage: {effectiveAreas.join(', ')}
-                </p>
-              </div>
-            ) : null} */}
+  let permissionList: ReactNode;
 
-            <OrgGrantsCallout />
-{/* 
-            {templates.length > 0 && onApplyTemplate ? (
-              <div className="space-y-3 rounded-lg border border-black-50 bg-neutral-100 p-4">
-                <AppFormLabel className="text-black-400">Replace with template</AppFormLabel>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
-                  <div className="min-w-0 flex-1">
-                    <AppSelect
-                      placeholder="Select template…"
-                      options={templateOptions}
-                      value={templateKey || BLANK_TEMPLATE_VALUE}
-                      onChange={(value) =>
-                        setTemplateKey(value === BLANK_TEMPLATE_VALUE ? '' : value)
-                      }
-                    />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="h-[52px] shrink-0 rounded-sm px-5 font-sans text-sm font-semibold"
-                    disabled={!templateKey || actionsDisabled}
-                    onClick={() => templateKey && onApplyTemplate(templateKey)}
-                  >
-                    {applyingTemplate ? 'Applying…' : 'Apply template'}
-                  </Button>
-                </div>
-              </div>
-            ) : null} */}
-
-            {loading ? (
-              <LoadingState message="Loading permissions…" />
-            ) : (
-              permissionGroups.map((group) => (
-                <div key={group.key} className="space-y-3">
-                  <h3 className="text-xs font-medium tracking-wide text-black-400 uppercase">
-                    {group.label}
-                  </h3>
-                  <ul className="space-y-3">
-                    {group.permissions.map((permission) => (
-                      <li key={permission.reference}>
-                        <Label className="flex cursor-pointer items-center gap-3 font-sans text-xs/[19.6px] font-normal text-black-500">
-                          <AppCheckbox
-                            checked={isSelected(permission.reference)}
-                            onCheckedChange={(checked) =>
-                              onToggle(permission.reference, checked)
-                            }
-                          />
-                          {formatPermissionLabel(permission)}
-                        </Label>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ))
-            )}
-          </div>
-        }
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
-              disabled={actionsDisabled}
-              onClick={onCancel}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
-              disabled={actionsDisabled}
-              onClick={onConfirm}
-            >
-              {saving ? 'Saving…' : 'Save permissions'}
-            </Button>
-          </>
+  if (showCatalogLoading || (roleLoading && permissionGroups.length === 0)) {
+    permissionList = (
+      <PermissionsLoadingState
+        message={
+          showCatalogLoading ? 'Loading permission catalog…' : 'Loading role permissions…'
         }
       />
-    </Dialog>
+    );
+  } else if (catalogError) {
+    permissionList = (
+      <p className="text-sm text-destructive">
+        {catalogError.message || 'Failed to load permissions.'}
+      </p>
+    );
+  } else if (permissionGroups.length === 0) {
+    permissionList = (
+      <p className="text-sm text-black-400">No permissions are available to assign.</p>
+    );
+  } else {
+    permissionList = permissionGroups.map((group) => (
+      <div key={group.key} className="space-y-3">
+        <h3 className="text-xs font-medium tracking-wide text-black-400 uppercase">
+          {group.label}
+        </h3>
+        <ul className="space-y-3">
+          {group.permissions.map((permission) => {
+            const checkboxId = `permission-${permission.reference}`;
+
+            return (
+              <li key={permission.reference}>
+                <label
+                  htmlFor={checkboxId}
+                  className="flex cursor-pointer items-center gap-3 font-sans text-xs/[19.6px] font-normal text-black-500"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <AppCheckbox
+                    id={checkboxId}
+                    checked={isSelected(permission.reference)}
+                    onCheckedChange={(checked) => {
+                      if (typeof checked !== 'boolean') {
+                        return;
+                      }
+                      onToggle(permission.reference, checked);
+                    }}
+                  />
+                  {formatPermissionLabel(permission)}
+                </label>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ));
+  }
+
+  return (
+    <AppFormDialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) {
+          onCancel();
+        }
+      }}
+      title="Edit permissions"
+      description={description}
+      submitLabel="Save permissions"
+      loading={saving}
+      actionsDisabled={roleLoading || applyingTemplate}
+      submitDisabled={showCatalogLoading}
+      onSubmit={onConfirm}
+    >
+      <div className="space-y-6 font-sans">
+        <OrgGrantsCallout />
+        {permissionList}
+      </div>
+    </AppFormDialog>
   );
 }

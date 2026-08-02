@@ -1,70 +1,10 @@
-import type { ReactNode } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
-import { Button } from '@/components/ui/button';
-import { Dialog } from '@/components/ui/dialog';
 import { CatalogFieldFormFields } from '@/features/policies/components/catalog/CatalogFieldFormFields';
 import { CatalogTemplateFormFields } from '@/features/policies/components/catalog/CatalogTemplateFormFields';
 import type { CatalogFieldFormState } from '@/features/policies/components/catalog/CatalogFieldFormParts';
 import type { TemplateFormValues } from '@/features/policies/policy-config';
-import { AppModal } from '@/shared/reusable/AppModal';
+import { AppFormDialog } from '@/shared/reusable/AppFormDialog';
 import type { PolicyCatalogField, PolicyCatalogResponse } from '@/types/api';
-
-type CatalogDialogShellProps = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  title: string;
-  description?: string;
-  submitLabel: string;
-  loading: boolean;
-  onSubmit: () => void | Promise<void>;
-  className?: string;
-  children: ReactNode;
-};
-
-function CatalogDialogShell({
-  open,
-  onOpenChange,
-  title,
-  description,
-  submitLabel,
-  loading,
-  onSubmit,
-  className = 'sm:max-w-lg',
-  children,
-}: CatalogDialogShellProps) {
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <AppModal
-        title={title}
-        description={description}
-        className={className}
-        primaryFn={() => {}}
-        content={children}
-        actions={
-          <>
-            <Button
-              type="button"
-              variant="ghost"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold text-neutral-950 hover:bg-transparent"
-              disabled={loading}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              className="h-14 w-full rounded-sm p-5 font-sans text-sm/[19.6px] font-semibold"
-              disabled={loading}
-              onClick={onSubmit}
-            >
-              {loading ? 'Saving…' : submitLabel}
-            </Button>
-          </>
-        }
-      />
-    </Dialog>
-  );
-}
 
 type CatalogCreateFieldDialogProps = {
   open: boolean;
@@ -92,7 +32,7 @@ export function CatalogCreateFieldDialog({
   onSubmit,
 }: CatalogCreateFieldDialogProps) {
   return (
-    <CatalogDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add condition field"
@@ -112,7 +52,7 @@ export function CatalogCreateFieldDialog({
           onSelectDefinition={onSelectDefinition}
         />
       ) : null}
-    </CatalogDialogShell>
+    </AppFormDialog>
   );
 }
 
@@ -138,7 +78,7 @@ export function CatalogEditFieldDialog({
   onSubmit,
 }: CatalogEditFieldDialogProps) {
   return (
-    <CatalogDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Edit condition field"
@@ -155,7 +95,7 @@ export function CatalogEditFieldDialog({
           onChange={(updated) => onChange({ ...updated, reference: field.reference })}
         />
       ) : null}
-    </CatalogDialogShell>
+    </AppFormDialog>
   );
 }
 
@@ -177,17 +117,17 @@ export function CatalogCreateTemplateDialog({
   onSubmit,
 }: CatalogCreateTemplateDialogProps) {
   return (
-    <CatalogDialogShell
+    <AppFormDialog
       open={open}
       onOpenChange={onOpenChange}
       title="Add template"
       description="Templates appear as quick-start options when creating a new policy."
       submitLabel="Create template"
       loading={loading}
-      onSubmit={onSubmit}
       className="sm:max-w-3xl"
+      onSubmit={onSubmit}
     >
       <CatalogTemplateFormFields form={templateForm} catalog={catalog} />
-    </CatalogDialogShell>
+    </AppFormDialog>
   );
 }

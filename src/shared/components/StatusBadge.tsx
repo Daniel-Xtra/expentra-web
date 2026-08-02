@@ -32,8 +32,8 @@ const statusConfig: Record<
   },
   REIMBURSED: {
     label: 'Reimbursed',
-    className: 'bg-primary/10 text-primary',
-    dotClassName: 'bg-primary',
+    className: 'bg-violet-50 text-violet-700',
+    dotClassName: 'bg-violet-500',
   },
 };
 

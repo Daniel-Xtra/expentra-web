@@ -6,6 +6,10 @@ export type ListAuditLogsParams = {
   limit?: number;
   resourceReference?: string;
   action?: string;
+  actorReference?: string;
+  actorEmail?: string;
+  from?: string;
+  to?: string;
 };
 
 export async function listAuditLogs(

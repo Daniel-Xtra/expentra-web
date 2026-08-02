@@ -1,8 +1,7 @@
 import axios from 'axios';
 import type { FieldValues, Path, UseFormSetError } from 'react-hook-form';
 import type { ApiResponse } from '@/types/api';
-import { getApiErrorMessage } from '@/shared/api/client';
-import { toast } from 'sonner';
+import { toastError } from '@/shared/lib/toast';
 
 type ApiFieldError = {
   field: string;
@@ -58,5 +57,5 @@ export function handleMutationError<T extends FieldValues>(
     return;
   }
 
-  toast.error(getApiErrorMessage(error, options?.fallback ?? 'Something went wrong'));
+  toastError(error, options?.fallback ?? 'Something went wrong');
 }

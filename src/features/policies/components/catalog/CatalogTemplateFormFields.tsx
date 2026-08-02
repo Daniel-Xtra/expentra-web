@@ -2,7 +2,7 @@ import { Controller, type UseFormReturn } from 'react-hook-form';
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
 import { PolicyConditionBuilder } from '@/features/policies/components/PolicyConditionBuilder';
-import type { TemplateFormValues } from '@/features/policies/policy-config';
+import { asConditionForm, type TemplateFormValues } from '@/features/policies/policy-config';
 import AppFormInput from '@/shared/reusable/AppFormInput';
 import AppFormLabel from '@/shared/reusable/AppFormLabel';
 import AppTextarea from '@/shared/reusable/AppTextarea';
@@ -72,7 +72,7 @@ export function CatalogTemplateFormFields({
           />
         </div>
 
-        <PolicyConditionBuilder catalog={catalog} form={form} showTemplates={false} />
+        <PolicyConditionBuilder catalog={catalog} form={asConditionForm(form)} showTemplates={false} />
       </div>
     </Form>
   );

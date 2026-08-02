@@ -2,6 +2,7 @@ import { api } from '@/shared/api/client';
 import type {
   ApiResponse,
   PaginatedResult,
+  PermissionResponse,
   PermissionsGroupedResponse,
   RoleResponse,
 } from '@/types/api';
@@ -35,9 +36,33 @@ export async function listRoleTemplates(): Promise<RoleTemplateResponse[]> {
   return data.data ?? [];
 }
 
+function normalizePermissionsGroupedResponse(payload: unknown): PermissionsGroupedResponse {
+  if (!payload) {
+    return {};
+  }
+
+  if (Array.isArray(payload)) {
+    return { ungroupedPermissions: payload as PermissionResponse[] };
+  }
+
+  if (typeof payload !== 'object') {
+    return {};
+  }
+
+  const grouped: PermissionsGroupedResponse = {};
+
+  for (const [key, value] of Object.entries(payload)) {
+    if (Array.isArray(value)) {
+      grouped[key] = value as PermissionResponse[];
+    }
+  }
+
+  return grouped;
+}
+
 export async function listPermissions(): Promise<PermissionsGroupedResponse> {
   const { data } = await api.get<ApiResponse<PermissionsGroupedResponse>>('/roles/permissions');
-  return data.data ?? {};
+  return normalizePermissionsGroupedResponse(data.data);
 }
 
 export async function listRoles(

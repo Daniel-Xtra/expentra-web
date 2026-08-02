@@ -28,7 +28,7 @@ import {
 import { useActionCapabilities } from '@/shared/hooks/use-action-capabilities';
 import { requiredField } from '@/shared/lib/zod';
 import { toastError, toastSuccess } from '@/shared/lib/toast';
-import type { PolicyViolation } from '@/types/api';
+import type { BudgetSubmitCheckResult, ExpenseSubmitCheckResult, PolicyViolation } from '@/types/api';
 
 const commentSchema = z.object({
   body: requiredField('Comment'),
@@ -43,9 +43,15 @@ export function useExpenseDetail(reference: string) {
 
   const [isEditing, setIsEditing] = useState(false);
   const [showReject, setShowReject] = useState(false);
+  const [showApprove, setShowApprove] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [policyViolations, setPolicyViolations] = useState<PolicyViolation[] | null>(null);
   const [blockingViolations, setBlockingViolations] = useState<PolicyViolation[] | null>(null);
+  const [budgetWarning, setBudgetWarning] = useState<BudgetSubmitCheckResult | null>(null);
+  const [budgetBlock, setBudgetBlock] = useState<BudgetSubmitCheckResult | null>(null);
+  const [pendingSubmitCheck, setPendingSubmitCheck] = useState<ExpenseSubmitCheckResult | null>(
+    null,
+  );
   const [isCheckingPolicies, setIsCheckingPolicies] = useState(false);
 
   const commentForm = useForm<ExpenseCommentFormValues>({
@@ -157,9 +163,11 @@ export function useExpenseDetail(reference: string) {
   });
 
   const approveMutation = useMutation({
-    mutationFn: () => approveExpense(reference),
+    mutationFn: (payload?: { comment?: string; overBudgetAcknowledged?: boolean }) =>
+      approveExpense(reference, payload),
     onSuccess: async () => {
       toastSuccess('Expense approved');
+      setShowApprove(false);
       await refresh();
     },
     onError: (err) => toastError(err, 'Failed to approve expense'),
@@ -178,30 +186,68 @@ export function useExpenseDetail(reference: string) {
   const reimburseMutation = useMutation({
     mutationFn: () => reimburseExpense(reference),
     onSuccess: async () => {
-      toastSuccess('Expense marked as reimbursed');
+      toastSuccess('Marked as paid');
       await refresh();
     },
-    onError: (err) => toastError(err, 'Failed to reimburse expense'),
+    onError: (err) => toastError(err, 'Failed to mark claim as paid'),
   });
+
+  const proceedToSubmit = async (
+    checkResult: ExpenseSubmitCheckResult,
+    justifications?: Record<string, string>,
+  ) => {
+    if (checkResult.warningViolations.length > 0 && !justifications) {
+      setPolicyViolations(checkResult.warningViolations);
+      return;
+    }
+
+    try {
+      await submitMutation.mutateAsync(justifications);
+      setPendingSubmitCheck(null);
+      setBudgetWarning(null);
+      setPolicyViolations(null);
+    } catch {
+      // submitMutation.onError already surfaced the toast
+    }
+  };
 
   const handleSubmitForApproval = async () => {
     setIsCheckingPolicies(true);
     try {
       const result = await checkExpenseSubmitPolicies(reference);
+
+      if (!result.budget.allowed && result.budget.wouldExceed) {
+        setBudgetBlock(result.budget);
+        return;
+      }
+
       if (result.blockingViolations.length > 0) {
         setBlockingViolations(result.blockingViolations);
         return;
       }
-      if (result.warningViolations.length > 0) {
-        setPolicyViolations(result.warningViolations);
+
+      setPendingSubmitCheck(result);
+
+      if (result.budget.wouldExceed) {
+        setBudgetWarning(result.budget);
         return;
       }
-      await submitMutation.mutateAsync(undefined);
+
+      await proceedToSubmit(result);
     } catch (err) {
       toastError(err, 'Failed to check expense policies');
     } finally {
       setIsCheckingPolicies(false);
     }
+  };
+
+  const handleBudgetWarningConfirm = async () => {
+    if (!pendingSubmitCheck) {
+      return;
+    }
+
+    setBudgetWarning(null);
+    await proceedToSubmit(pendingSubmitCheck);
   };
 
   const expense = expenseQuery.data;
@@ -220,7 +266,7 @@ export function useExpenseDetail(reference: string) {
     expense?.status !== 'APPROVED' && expense?.status !== 'REIMBURSED';
   const canUploadReceipt = isDraft && caps.receipt.upload;
   const canDeleteReceipt = isDraft && caps.receipt.delete;
-  const hasSecondaryActions = canEdit || canDelete || canReopen;
+  const hasSecondaryActions = canDelete || canReopen;
 
   return {
     expenseQuery,
@@ -233,12 +279,20 @@ export function useExpenseDetail(reference: string) {
     setIsEditing,
     showReject,
     setShowReject,
+    showApprove,
+    setShowApprove,
     showDeleteConfirm,
     setShowDeleteConfirm,
     policyViolations,
     setPolicyViolations,
     blockingViolations,
     setBlockingViolations,
+    budgetWarning,
+    setBudgetWarning,
+    budgetBlock,
+    setBudgetBlock,
+    pendingSubmitCheck,
+    handleBudgetWarningConfirm,
     isCheckingPolicies,
     updateMutation,
     submitMutation,
@@ -251,6 +305,7 @@ export function useExpenseDetail(reference: string) {
     rejectMutation,
     reimburseMutation,
     handleSubmitForApproval,
+    proceedToSubmit,
     expense,
     isDraft,
     isRejected,

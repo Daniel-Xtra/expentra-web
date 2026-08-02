@@ -100,14 +100,14 @@ export function AuthPageLayout({
                 <button
                   type="button"
                   onClick={footerLink.onClick}
-                  className="cursor-pointer font-semibold text-primary-500 hover:underline"
+                  className="cursor-pointer font-semibold text-primary-500"
                 >
                   {footerLink.label}
                 </button>
               ) : (
                 <Link
                   to={footerLink.to ?? '/login'}
-                  className="font-semibold text-primary-500 hover:underline"
+                  className="font-semibold text-primary-500"
                 >
                   {footerLink.label}
                 </Link>

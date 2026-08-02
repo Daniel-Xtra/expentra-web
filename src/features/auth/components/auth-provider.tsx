@@ -20,6 +20,7 @@ import type { AuthorizationMe, SignUpInput, UserResponse } from '@/types/api';
 import { fetchCurrentUser } from '@/features/users/api';
 import {
   confirmEmailVerification as apiConfirmEmailVerification,
+  exchangeSsoCode as apiExchangeSsoCode,
   fetchAuthorizationMe,
   resendEmailVerification as apiResendEmailVerification,
   signIn as apiSignIn,
@@ -33,7 +34,15 @@ import {
   isUserEmailVerified,
   loadPendingUser,
   persistPendingUser,
+  recordVerificationResendAttempt,
 } from '../auth-session';
+import {
+  AccountSuspendedError,
+  isAccountSuspendedError,
+  markAccountSuspended,
+  redirectToSuspendedAccount,
+  shouldSkipSuspendedAuthBootstrap,
+} from '@/shared/api/auth-errors';
 import { AuthContext, type AuthState } from '../auth-context';
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -45,6 +54,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => onSessionVersionChange(() => setSessionVersion(getSessionVersion())), []);
 
   const refreshProfile = useCallback(async () => {
+    if (shouldSkipSuspendedAuthBootstrap()) {
+      return;
+    }
+
     const [profile, currentUser] = await Promise.all([
       fetchAuthorizationMe(),
       fetchCurrentUser(),
@@ -73,6 +86,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false;
 
     async function bootstrap() {
+      if (shouldSkipSuspendedAuthBootstrap()) {
+        setAccessToken(null);
+        clearPendingUser();
+        setUser(null);
+        setAuthorization(null);
+        if (!cancelled) {
+          setIsLoading(false);
+        }
+        return;
+      }
+
       const pendingUser = loadPendingUser();
       let token = getAccessToken();
       if (isAccessTokenExpired(token)) {
@@ -93,7 +117,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         await refreshProfile();
       } catch (error) {
-        if (
+        if (cancelled) {
+          return;
+        }
+        if (isAccountSuspendedError(error)) {
+          setAccessToken(null);
+          clearPendingUser();
+          setUser(null);
+          setAuthorization(null);
+          redirectToSuspendedAccount();
+        } else if (
           isEmailVerificationRequiredError(error) &&
           pendingUser &&
           !isUserEmailVerified(pendingUser)
@@ -121,14 +154,129 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [refreshProfile]);
 
   const signIn = useCallback(async (email: string, password: string) => {
-    const result = await apiSignIn(email, password);
-    setSessionTokens({
-      accessToken: result.accessToken,
-    });
-    setUser(result.user);
-    await refreshProfile();
-    return { isEmailVerified: true };
-  }, [refreshProfile]);
+    const rejectSuspendedLogin = async (): Promise<never> => {
+      setAccessToken(null);
+      clearPendingUser();
+      setUser(null);
+      setAuthorization(null);
+      try {
+        await apiSignOut();
+      } catch {
+        // Anonymous or expired sign-out is fine.
+      }
+      markAccountSuspended();
+      throw new AccountSuspendedError();
+    };
+
+    const clearFailedLogin = () => {
+      setAccessToken(null);
+      clearPendingUser();
+      setUser(null);
+      setAuthorization(null);
+    };
+
+    try {
+      const result = await apiSignIn(email, password);
+      if (!result.user.isActive) {
+        await rejectSuspendedLogin();
+      }
+
+      setSessionTokens({
+        accessToken: result.accessToken,
+      });
+      setUser(result.user);
+
+      if (!result.user.isEmailVerified) {
+        persistPendingUser(result.user);
+        setAuthorization(null);
+        recordVerificationResendAttempt();
+        return { isEmailVerified: false, verificationEmailSent: true };
+      }
+
+      const [profile, currentUser] = await Promise.all([
+        fetchAuthorizationMe(),
+        fetchCurrentUser(),
+      ]);
+
+      if (!currentUser.isActive) {
+        await rejectSuspendedLogin();
+      }
+
+      assertKnownCapabilities(profile.capabilities);
+      setAuthorization(profile);
+      setUser(currentUser);
+      clearPendingUser();
+      return { isEmailVerified: true };
+    } catch (error) {
+      if (error instanceof AccountSuspendedError) {
+        throw error;
+      }
+      if (isAccountSuspendedError(error)) {
+        await rejectSuspendedLogin();
+      }
+      clearFailedLogin();
+      throw error;
+    }
+  }, []);
+
+  const completeSso = useCallback(async (exchangeCode: string) => {
+    const rejectSuspendedLogin = async (): Promise<never> => {
+      setAccessToken(null);
+      clearPendingUser();
+      setUser(null);
+      setAuthorization(null);
+      try {
+        await apiSignOut();
+      } catch {
+        // Anonymous or expired sign-out is fine.
+      }
+      markAccountSuspended();
+      throw new AccountSuspendedError();
+    };
+
+    const clearFailedLogin = () => {
+      setAccessToken(null);
+      clearPendingUser();
+      setUser(null);
+      setAuthorization(null);
+    };
+
+    try {
+      const result = await apiExchangeSsoCode(exchangeCode);
+      if (!result.user.isActive) {
+        await rejectSuspendedLogin();
+      }
+
+      setSessionTokens({
+        accessToken: result.accessToken,
+      });
+      setUser(result.user);
+
+      const [profile, currentUser] = await Promise.all([
+        fetchAuthorizationMe(),
+        fetchCurrentUser(),
+      ]);
+
+      if (!currentUser.isActive) {
+        await rejectSuspendedLogin();
+      }
+
+      assertKnownCapabilities(profile.capabilities);
+      setAuthorization(profile);
+      setUser(currentUser);
+      clearPendingUser();
+      return { isEmailVerified: true };
+    } catch (error) {
+      if (error instanceof AccountSuspendedError) {
+        throw error;
+      }
+      if (isAccountSuspendedError(error)) {
+        await rejectSuspendedLogin();
+      }
+      clearFailedLogin();
+      throw error;
+    }
+  }, []);
 
   const signUp = useCallback(async (input: SignUpInput) => {
     const { result, message } = await apiSignUp(input);
@@ -188,6 +336,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isAuthenticated: Boolean(user && getAccessToken()),
       isLoading,
       signIn,
+      completeSso,
       signUp,
       confirmEmailVerification,
       resendEmailVerification,
@@ -201,6 +350,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       authorization,
       isLoading,
       signIn,
+      completeSso,
       signUp,
       confirmEmailVerification,
       resendEmailVerification,

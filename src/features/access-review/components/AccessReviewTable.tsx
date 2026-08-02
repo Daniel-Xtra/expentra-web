@@ -24,15 +24,15 @@ export function AccessReviewTable({ rows }: AccessReviewTableProps) {
   const [expandedReference, setExpandedReference] = useState<string | null>(null);
 
   return (
-    <Table className="min-w-[56rem]">
+    <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="min-w-[14rem]">User</TableHead>
-          <TableHead className="min-w-[6rem]">Role</TableHead>
-          <TableHead className="min-w-[8rem]">Department</TableHead>
-          <TableHead className="min-w-[12rem]">Permissions</TableHead>
-          <TableHead className="min-w-[10rem]">Org grants</TableHead>
-          <TableHead className="min-w-[7rem]">Capabilities</TableHead>
+          <TableHead>User</TableHead>
+          <TableHead className="hidden md:table-cell">Role</TableHead>
+          <TableHead className="hidden lg:table-cell">Department</TableHead>
+          <TableHead className="hidden xl:table-cell">Permissions</TableHead>
+          <TableHead className="hidden xl:table-cell">Org grants</TableHead>
+          <TableHead>Capabilities</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -51,16 +51,28 @@ export function AccessReviewTable({ rows }: AccessReviewTableProps) {
                       {row.email}
                     </Link>
                     <ReferenceCell value={row.userReference} variant="compact" />
+                    <div className="mt-1 space-y-1 md:hidden">
+                      <p className="text-xs text-muted-foreground">
+                        <span className="font-medium text-foreground">Role:</span>{' '}
+                        {row.roleName ? formatLabel(row.roleName) : '—'}
+                      </p>
+                      <p className="text-xs text-muted-foreground lg:hidden">
+                        <span className="font-medium text-foreground">Department:</span>{' '}
+                        {row.departmentName ?? '—'}
+                      </p>
+                    </div>
                   </div>
                 </TableCell>
-                <TableCell className="align-top">
+                <TableCell className="hidden align-top md:table-cell">
                   {row.roleName ? formatLabel(row.roleName) : '—'}
                 </TableCell>
-                <TableCell className="align-top">{row.departmentName ?? '—'}</TableCell>
-                <TableCell className="align-top whitespace-normal">
+                <TableCell className="hidden align-top lg:table-cell">
+                  {row.departmentName ?? '—'}
+                </TableCell>
+                <TableCell className="hidden align-top whitespace-normal xl:table-cell">
                   <TagSummary items={row.permissionNames} limit={2} />
                 </TableCell>
-                <TableCell className="align-top whitespace-normal">
+                <TableCell className="hidden align-top whitespace-normal xl:table-cell">
                   <TagSummary items={row.orgGrants.map(formatOrgGrantLabel)} limit={1} />
                 </TableCell>
                 <TableCell className="align-top">

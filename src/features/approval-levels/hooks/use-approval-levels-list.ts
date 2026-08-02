@@ -47,11 +47,6 @@ export function useApprovalLevelsList() {
     queryFn: fetchApprovalLevelWorkflowHealth,
   });
 
-  const rolesQuery = useQuery({
-    queryKey: queryKeys.roles.catalog(),
-    queryFn: () => listRoles({ page: 1, limit: 100 }),
-  });
-
   return {
     search,
     setSearch,
@@ -62,6 +57,19 @@ export function useApprovalLevelsList() {
     listParams,
     levelsQuery,
     workflowHealthQuery,
+  };
+}
+
+export function useApprovalLevelCatalogData(catalogEnabled: boolean) {
+  const rolesQuery = useQuery({
+    queryKey: queryKeys.roles.catalog(),
+    queryFn: () => listRoles({ page: 1, limit: 100 }),
+    enabled: catalogEnabled,
+  });
+
+  return {
+    roles: rolesQuery.data?.items ?? [],
+    isLoading: rolesQuery.isLoading,
     rolesQuery,
   };
 }

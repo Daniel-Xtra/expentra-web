@@ -9,7 +9,7 @@ import {
   type ListBudgetsParams,
 } from '@/features/budgets/api';
 import {
-  budgetSchema,
+  createBudgetSchema,
   editBudgetSchema,
   type BudgetFormValues,
   type EditBudgetFormValues,
@@ -31,7 +31,7 @@ export function useBudgetMutations({ currentYear, listParams }: UseBudgetMutatio
   const [editingBudget, setEditingBudget] = useState<BudgetResponse | null>(null);
 
   const createForm = useForm<BudgetFormValues>({
-    resolver: zodResolver(budgetSchema),
+    resolver: zodResolver(createBudgetSchema(currentYear)),
     defaultValues: {
       departmentReference: '',
       year: currentYear,

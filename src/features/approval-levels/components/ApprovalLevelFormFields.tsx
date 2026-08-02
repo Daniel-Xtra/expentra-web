@@ -17,6 +17,7 @@ type ApprovalLevelFormFieldsProps = {
   form: UseFormReturn<ApprovalLevelFormValues | EditApprovalLevelFormValues>;
   mode: 'create' | 'edit';
   roles: RoleResponse[];
+  catalogLoading?: boolean;
   nameId: string;
   descriptionId: string;
   levelId: string;
@@ -26,6 +27,7 @@ export function ApprovalLevelFormFields({
   form,
   mode,
   roles,
+  catalogLoading = false,
   nameId,
   descriptionId,
   levelId,
@@ -120,11 +122,12 @@ export function ApprovalLevelFormFields({
               render={({ field, fieldState }) => (
                 <>
                   <AppSelect
-                    placeholder="Select role"
+                    placeholder={catalogLoading ? 'Loading roles…' : 'Select role'}
                     options={roleOptions}
                     value={field.value ?? ''}
                     onChange={field.onChange}
                     error={Boolean(fieldState.error)}
+                    disabled={catalogLoading}
                   />
                   {fieldState.error ? (
                     <p className="text-xs text-error-500">{fieldState.error.message}</p>

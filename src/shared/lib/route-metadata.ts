@@ -46,36 +46,46 @@ const ROUTE_METADATA: Record<string, RouteMetadata> = {
   },
   '/dashboard': {
     title: 'Dashboard',
-    description: 'Overview of your spending, team activity, and department budget.',
+    description:
+      'Your claims and spending. Team approvals are on Approvals; team budget on Department.',
   },
   '/expenses': {
     title: 'Expenses',
-    description: 'View and manage your expense claims.',
+    description: 'Track drafts, submissions, and reimbursements.',
   },
   '/expenses/new': {
     title: 'New expense',
-    description: 'Create a new expense claim draft.',
+    description: 'Add claim details, attach a receipt, then submit for approval.',
   },
   '/profile': {
     title: 'Account settings',
     description: 'Manage your profile and account preferences.',
   },
   '/approvals': {
-    title: 'Approval queue',
-    description: 'Review and action submitted expense claims awaiting approval.',
+    title: 'Approvals',
+    description: 'Oldest first. Clear aging claims so reimbursements are not delayed.',
   },
-  '/finance': {
-    title: 'Finance queue',
-    description: 'Process approved expenses ready for reimbursement.',
+  '/department': {
+    title: 'Department',
+    description: 'View profile, team, and budget for departments you manage.',
+  },
+  '/payouts': {
+    title: 'Payouts',
+    description: 'Approved claims awaiting reimbursement. Export for your bank run, then mark paid.',
   },
   '/admin/reports': {
     title: 'Reports',
-    description: 'Organization spending analytics, budgets, and trends.',
+    description: 'Settled spend, budgets, and exceptions for finance review.',
   },
   '/notifications': {
     title: 'Notifications',
-    description: 'Updates on expense approvals, budgets, and account activity.',
+    description: 'Approvals, payouts, budgets, and account updates.',
   },
+  '/exports': {
+    title: 'Exports',
+    description: 'Exports download directly to your device.',
+  },
+
   '/admin/users': {
     title: 'Users',
     description: 'Manage employees, assignments, and account access.',

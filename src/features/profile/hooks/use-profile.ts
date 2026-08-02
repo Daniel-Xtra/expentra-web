@@ -1,10 +1,10 @@
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useAuth } from '@/features/auth/hooks/use-auth';
 import { changePasswordSchema, type ChangePasswordFormValues } from '@/features/profile/schemas';
-import { changePassword, fetchCurrentUser, updateProfile } from '@/features/users/api';
+import { changePassword, updateProfile } from '@/features/users/api';
 import { handleMutationError } from '@/shared/api/form-errors';
 import { queryKeys } from '@/shared/api/query-keys';
 import { hasNavAccess, NOTIFICATION_READ_ACCESS } from '@/shared/navigation';
@@ -19,17 +19,12 @@ const profileSchema = z.object({
 export type ProfileFormValues = z.infer<typeof profileSchema>;
 
 export function useProfile() {
-  const { refreshProfile, authorization } = useAuth();
+  const { user, authorization, refreshProfile, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const canReadNotifications = hasNavAccess(
     authorization?.capabilities,
     NOTIFICATION_READ_ACCESS,
   );
-
-  const profileQuery = useQuery({
-    queryKey: queryKeys.users.me(),
-    queryFn: fetchCurrentUser,
-  });
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
@@ -78,7 +73,8 @@ export function useProfile() {
     canReadNotifications,
     managedDepartments: authorization?.managedDepartments ?? [],
     orgGrants: authorization?.orgGrants ?? [],
-    profileQuery,
+    user,
+    isLoading,
     profileForm,
     passwordForm,
     updateMutation,

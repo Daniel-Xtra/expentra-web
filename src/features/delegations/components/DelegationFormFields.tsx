@@ -1,6 +1,7 @@
-import { Controller, type UseFormReturn } from 'react-hook-form';
+import { Controller, useWatch, type UseFormReturn } from 'react-hook-form';
 import { Form, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { cn } from '@/lib/utils';
+import { getMinDelegationDate } from '@/features/delegations/schemas';
 import type { DelegationFormValues } from '@/features/delegations/schemas';
 import AppFormInput from '@/shared/reusable/AppFormInput';
 import AppFormLabel from '@/shared/reusable/AppFormLabel';
@@ -11,9 +12,18 @@ import type { UserResponse } from '@/types/api';
 type DelegationFormFieldsProps = {
   form: UseFormReturn<DelegationFormValues>;
   users: UserResponse[];
+  catalogLoading?: boolean;
 };
 
-export function DelegationFormFields({ form, users }: DelegationFormFieldsProps) {
+export function DelegationFormFields({
+  form,
+  users,
+  catalogLoading = false,
+}: DelegationFormFieldsProps) {
+  const minDate = getMinDelegationDate();
+  const startsAt = useWatch({ control: form.control, name: 'startsAt' });
+  const endsMinDate = startsAt && startsAt > minDate ? startsAt : minDate;
+
   const delegateOptions = users.map((user) => ({
     value: user.reference,
     label: `${formatUserName(user)} · ${user.email}`,
@@ -30,11 +40,12 @@ export function DelegationFormFields({ form, users }: DelegationFormFieldsProps)
             render={({ field, fieldState }) => (
               <>
                 <AppSelect
-                  placeholder="Select colleague"
+                  placeholder={catalogLoading ? 'Loading colleagues…' : 'Select colleague'}
                   options={delegateOptions}
                   value={field.value}
                   onChange={field.onChange}
                   error={Boolean(fieldState.error)}
+                  disabled={catalogLoading}
                 />
                 {fieldState.error ? (
                   <p className="text-xs text-error-500">{fieldState.error.message}</p>
@@ -57,6 +68,7 @@ export function DelegationFormFields({ form, users }: DelegationFormFieldsProps)
                   <AppFormInput
                     id="delegation-starts"
                     type="date"
+                    min={minDate}
                     placeholder=""
                     {...field}
                     aria-invalid={fieldState.invalid ? true : undefined}
@@ -83,6 +95,7 @@ export function DelegationFormFields({ form, users }: DelegationFormFieldsProps)
                   <AppFormInput
                     id="delegation-ends"
                     type="date"
+                    min={endsMinDate}
                     placeholder=""
                     {...field}
                     aria-invalid={fieldState.invalid ? true : undefined}

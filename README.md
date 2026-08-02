@@ -31,12 +31,3 @@ App runs at [http://localhost:5173](http://localhost:5173).
 ## Environment variables
 
 Copy [`.env.example`](.env.example) to `.env`. All `VITE_*` variables are embedded in the client bundle and are publicly visible — never put secrets there.
-
-## Deployment
-
-See **[DEPLOYMENT.md](DEPLOYMENT.md)** for the full guide covering:
-
-- GitHub Actions CI
-- Vercel hosting (preview, development, production)
-- Branch strategy (`feature/*` → preview, `develop` → dev, `main` → prod)
-- Environment variables, security headers, rollback, and troubleshooting

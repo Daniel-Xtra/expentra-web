@@ -1,4 +1,4 @@
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import { formatUserName } from '@/shared/utils/user';
 
@@ -14,6 +14,7 @@ type UserAvatarProps = {
     firstName?: string | null;
     lastName?: string | null;
     email?: string;
+    avatarUrl?: string | null;
   } | null;
   initials?: string;
   size?: keyof typeof sizeStyles;
@@ -29,11 +30,20 @@ export function UserAvatar({
   const displayInitial =
     initials ?? formatUserName(user).charAt(0).toUpperCase();
   const styles = sizeStyles[size];
+  const avatarUrl = user?.avatarUrl?.trim() || null;
 
   return (
     <Avatar
       className={cn('shrink-0 rounded-md after:rounded-md', styles.root, className)}
     >
+      {avatarUrl ? (
+        <AvatarImage
+          src={avatarUrl}
+          alt={formatUserName(user)}
+          className="rounded-md"
+          referrerPolicy="no-referrer"
+        />
+      ) : null}
       <AvatarFallback
         className={cn(
           'rounded-md bg-neutral-950 font-sans font-semibold text-white',

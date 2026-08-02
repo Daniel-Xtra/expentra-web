@@ -1,4 +1,5 @@
-import { CheckIcon } from '@phosphor-icons/react';
+import { useEffect, useRef } from 'react';
+import { CheckIcon, MinusIcon } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 type AppCheckboxProps = {
@@ -6,7 +7,9 @@ type AppCheckboxProps = {
   onCheckedChange: (checked: boolean) => void;
   id?: string;
   disabled?: boolean;
+  indeterminate?: boolean;
   className?: string;
+  'aria-label'?: string;
 };
 
 export default function AppCheckbox({
@@ -14,33 +17,61 @@ export default function AppCheckbox({
   onCheckedChange,
   id,
   disabled,
+  indeterminate = false,
   className,
+  'aria-label': ariaLabel,
 }: AppCheckboxProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.indeterminate = indeterminate;
+    }
+  }, [indeterminate]);
+
+  const showCheck = checked && !indeterminate;
+
   return (
-    <span className={cn('inline-flex shrink-0', className)}>
+    <span
+      className={cn(
+        'relative inline-flex size-7 shrink-0 rounded-xl',
+        'focus-within:ring-0 focus-within:ring-offset-0',
+        className,
+      )}
+    >
       <input
+        ref={inputRef}
         id={id}
         type="checkbox"
         checked={checked}
         disabled={disabled}
-        onChange={(event) => onCheckedChange(event.target.checked)}
-        className="peer sr-only"
+        aria-label={ariaLabel}
+        onChange={(event) => {
+          event.stopPropagation();
+          onCheckedChange(event.target.checked);
+        }}
+        onClick={(event) => event.stopPropagation()}
+        className={cn(
+          'absolute inset-0 z-10 size-full cursor-pointer opacity-0',
+          disabled && 'cursor-not-allowed',
+        )}
       />
       <span
         aria-hidden
         className={cn(
-          'flex size-7 items-center justify-center rounded-xl bg-neutral-100',
-          'peer-focus-visible:ring-2 peer-focus-visible:ring-primary/20 peer-focus-visible:ring-offset-2',
+          'pointer-events-none flex size-7 items-center justify-center rounded-xl bg-neutral-100',
           disabled && 'opacity-50',
         )}
       >
         <span
           className={cn(
             'flex size-4 items-center justify-center rounded-md border border-black-50 bg-white transition-colors',
-            checked && 'border-primary-500',
+            (checked || indeterminate) && 'border-primary-500',
           )}
         >
-          {checked ? (
+          {indeterminate ? (
+            <MinusIcon className="size-3 text-primary-500" weight="bold" />
+          ) : showCheck ? (
             <CheckIcon className="size-3 text-primary-500" weight="bold" />
           ) : null}
         </span>

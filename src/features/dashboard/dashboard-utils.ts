@@ -13,7 +13,7 @@ export const CATEGORY_CHIP_COLORS: Record<string, string> = {
   TRAVEL: 'bg-violet-500/15 text-violet-700',
   MEALS: 'bg-orange-500/15 text-orange-700',
   SUPPLIES: 'bg-sky-500/15 text-sky-700',
-  OTHER: 'bg-muted text-muted-foreground',
+  OTHERS: 'bg-muted text-muted-foreground',
 };
 
 export const MONTH_OPTIONS = [
@@ -32,11 +32,63 @@ export const MONTH_OPTIONS = [
 ];
 
 export const QUARTER_OPTIONS = [
-  { value: '1', label: 'Q1 (Jan–Mar)' },
-  { value: '2', label: 'Q2 (Apr–Jun)' },
-  { value: '3', label: 'Q3 (Jul–Sep)' },
-  { value: '4', label: 'Q4 (Oct–Dec)' },
+  { value: '1', label: 'Q1 (Jan–Mar)', shortLabel: 'Q1' },
+  { value: '2', label: 'Q2 (Apr–Jun)', shortLabel: 'Q2' },
+  { value: '3', label: 'Q3 (Jul–Sep)', shortLabel: 'Q3' },
+  { value: '4', label: 'Q4 (Oct–Dec)', shortLabel: 'Q4' },
 ];
+
+export function getCurrentDashboardPeriod() {
+  const now = new Date();
+  return {
+    year: String(now.getFullYear()),
+    month: String(now.getMonth() + 1),
+    quarter: String(Math.floor(now.getMonth() / 3) + 1),
+  };
+}
+
+export function isCurrentDashboardPeriod(
+  mode: 'year' | 'quarter' | 'month',
+  year: string,
+  month: string,
+  quarter: string,
+) {
+  const current = getCurrentDashboardPeriod();
+  if (year !== current.year) return false;
+  if (mode === 'year') return true;
+  if (mode === 'quarter') return quarter === current.quarter;
+  return month === current.month;
+}
+
+export function formatDashboardPeriodLabel(
+  mode: 'year' | 'quarter' | 'month',
+  year: string,
+  month: string,
+  quarter: string,
+) {
+  if (mode === 'year') return `Full year ${year}`;
+  if (mode === 'quarter') {
+    const option = QUARTER_OPTIONS.find((entry) => entry.value === quarter);
+    return `${option?.label ?? `Q${quarter}`} ${year}`;
+  }
+  const option = MONTH_OPTIONS.find((entry) => entry.value === month);
+  return `${option?.label ?? month} ${year}`;
+}
+
+export function formatDashboardPeriodCompactLabel(
+  mode: 'year' | 'quarter' | 'month',
+  year: string,
+  month: string,
+  quarter: string,
+) {
+  if (mode === 'year') return year;
+  if (mode === 'quarter') {
+    const option = QUARTER_OPTIONS.find((entry) => entry.value === quarter);
+    return `${option?.shortLabel ?? `Q${quarter}`} ${year}`;
+  }
+  const option = MONTH_OPTIONS.find((entry) => entry.value === month);
+  return option ? `${option.label} ${year}` : `${month}/${year}`;
+}
 
 export function formatGreetingDate(date = new Date()) {
   return new Intl.DateTimeFormat('en-GB', {
@@ -51,7 +103,7 @@ export function toLocalDateIso(date = new Date()) {
   return date.toLocaleDateString('en-CA');
 }
 
-export type ReimbursementDuration = {
+type ReimbursementDuration = {
   value: string;
   unit: string;
   tone: 'fast' | 'typical' | 'slow';

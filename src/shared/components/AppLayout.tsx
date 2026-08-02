@@ -13,9 +13,11 @@ export function AppLayout() {
 
       <div className="flex min-w-0 flex-1 flex-col md:pl-[260px]">
         <TopBar onMenuClick={() => setSidebarOpen(true)} />
-        <main className="flex-1 px-3 py-3 md:px-4 md:py-4">
+        <main className="flex min-w-0 flex-1 flex-col px-3 py-3 md:px-4 md:py-4">
           <EmailVerificationBanner />
-          <Outlet />
+          <div className="min-w-0 w-full flex-1">
+            <Outlet />
+          </div>
         </main>
       </div>
     </div>

@@ -18,6 +18,15 @@ export const sortOptions: Array<{ value: BudgetListSortField; label: string }> =
   { value: 'year', label: 'Year' },
 ];
 
+export function buildCreateBudgetYearOptions(currentYear: number, futureYears = 2) {
+  return Array.from({ length: futureYears + 1 }, (_, index) => currentYear + index).map(
+    (year) => ({
+      value: String(year),
+      label: String(year),
+    }),
+  );
+}
+
 export function buildYearOptions(currentYear: number) {
   return Array.from({ length: 5 }, (_, index) => currentYear - 2 + index).map((year) => ({
     value: String(year),

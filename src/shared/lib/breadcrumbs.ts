@@ -7,11 +7,11 @@ const routeLabels: Record<string, string> = {
   dashboard: 'Dashboard',
   expenses: 'Expenses',
   approvals: 'Approvals',
-  finance: 'Finance',
+  payouts: 'Payouts',
   reports: 'Reports',
   notifications: 'Notifications',
   profile: 'Account Settings',
-  'department-overview': 'Department overview',
+  department: 'Department',
   'verify-email': 'Verify Email',
   admin: 'Administration',
   users: 'Users',
@@ -44,22 +44,22 @@ function buildBreadcrumbs(pathname: string): Breadcrumb[] {
     ];
   }
 
-  if (pathname.match(/^\/admin\/departments\/[^/]+(\/budget)?$/)) {
+  if (pathname.match(/^\/admin\/departments\/[^/]+$/)) {
     return [
       { label: 'Departments', href: '/admin/departments' },
       { label: 'Detail' },
     ];
   }
 
-  if (pathname.match(/^\/department-overview\/[^/]+$/)) {
+  if (pathname.match(/^\/department\/[^/]+$/)) {
     return [
-      { label: 'Department overview', href: '/department-overview' },
+      { label: 'Department', href: '/department' },
       { label: 'Detail' },
     ];
   }
 
-  if (pathname === '/department-overview') {
-    return [{ label: 'Department overview' }];
+  if (pathname === '/department') {
+    return [{ label: 'Department' }];
   }
 
   const segments = pathname.split('/').filter(Boolean);

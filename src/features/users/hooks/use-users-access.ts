@@ -5,7 +5,6 @@ export function useUsersAccess() {
 
   return {
     canManageUsers: caps.user.read,
-    canCreateUsers: caps.user.create,
     canUpdateUsers: caps.user.update,
     canExportUsers: caps.user.export,
   };
