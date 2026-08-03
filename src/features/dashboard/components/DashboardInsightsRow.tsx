@@ -11,20 +11,6 @@ import type { DashboardPeriodTrend } from '@/types/api';
 
 const MIN_REIMBURSEMENTS_FOR_INSIGHT = 3;
 
-export function hasDashboardInsightsContent(input: {
-  trend: DashboardPeriodTrend;
-  avgDaysToReimbursement: number | null;
-  reimbursedCount: number;
-  currentTotalAmount: number;
-}) {
-  const showTrend =
-    input.currentTotalAmount > 0 || input.trend.previousTotalAmount > 0;
-  const showReimbursement =
-    input.reimbursedCount >= MIN_REIMBURSEMENTS_FOR_INSIGHT &&
-    input.avgDaysToReimbursement != null;
-  return showTrend || showReimbursement;
-}
-
 type DashboardInsightsRowProps = {
   trend: DashboardPeriodTrend;
   avgDaysToReimbursement: number | null;

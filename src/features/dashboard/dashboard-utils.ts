@@ -2,6 +2,22 @@ export function pluralize(count: number, singular: string, plural = `${singular}
   return count === 1 ? singular : plural;
 }
 
+const MIN_REIMBURSEMENTS_FOR_INSIGHT = 3;
+
+export function hasDashboardInsightsContent(input: {
+  trend: { previousTotalAmount: number };
+  avgDaysToReimbursement: number | null;
+  reimbursedCount: number;
+  currentTotalAmount: number;
+}) {
+  const showTrend =
+    input.currentTotalAmount > 0 || input.trend.previousTotalAmount > 0;
+  const showReimbursement =
+    input.reimbursedCount >= MIN_REIMBURSEMENTS_FOR_INSIGHT &&
+    input.avgDaysToReimbursement != null;
+  return showTrend || showReimbursement;
+}
+
 export function formatTrendPercent(value: number | null) {
   if (value == null) return 'New activity';
   if (value === 0) return 'No change';

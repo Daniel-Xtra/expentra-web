@@ -7,9 +7,9 @@ import {
   CatalogEditFieldDialog,
 } from '@/features/policies/components/catalog/CatalogFieldFormDialogs';
 import {
-  cloneParamDefinitions,
   type CatalogFieldFormState,
 } from '@/features/policies/components/catalog/CatalogFieldFormParts';
+import { cloneParamDefinitions } from '@/features/policies/components/catalog/catalog-form-utils';
 import { CatalogFieldsTable } from '@/features/policies/components/catalog/CatalogFieldsTable';
 import { CatalogTemplatesTable } from '@/features/policies/components/catalog/CatalogTemplatesTable';
 import { usePolicyCatalog } from '@/features/policies/hooks/use-policy-catalog';

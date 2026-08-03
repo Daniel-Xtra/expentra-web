@@ -16,7 +16,7 @@ export function useCatalogFormResolver<TSchema extends z.ZodTypeAny>(
     schema: TSchema;
   } | undefined>(undefined);
 
-  if (!validationRef.current) {
+  if (validationRef.current == null) {
     const source = createCatalogSource(catalog);
     validationRef.current = { source, schema: createSchema(source) };
   }

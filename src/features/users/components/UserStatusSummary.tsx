@@ -1,5 +1,4 @@
 import { cn } from '@/lib/utils';
-import type { ListUsersParams } from '@/features/users/api';
 import type { UserStatusCounts } from '@/types/api';
 
 type UserStatusSummaryProps = {
@@ -9,15 +8,6 @@ type UserStatusSummaryProps = {
   className?: string;
   isLoading?: boolean;
 };
-
-export function resolveUserListFilter(
-  value: string,
-): Pick<ListUsersParams, 'isActive' | 'unassignedDepartment'> {
-  if (value === 'active') return { isActive: true };
-  if (value === 'inactive') return { isActive: false };
-  if (value === 'unassigned') return { unassignedDepartment: true };
-  return {};
-}
 
 export function UserStatusSummary({
   counts,

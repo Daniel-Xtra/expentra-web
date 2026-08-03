@@ -39,6 +39,8 @@ export function PageMetadataProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// Context consumers are intentionally co-located with the provider.
+// eslint-disable-next-line react-refresh/only-export-components -- hook paired with provider
 export function usePageMetadataContext() {
   const context = useContext(PageMetadataContext);
   if (!context) {

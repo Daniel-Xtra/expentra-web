@@ -15,12 +15,6 @@ export type CatalogFieldFormState = {
   isActive: boolean;
 };
 
-export function cloneParamDefinitions(
-  paramDefinitions: PolicyCatalogField['paramDefinitions'] = [],
-): PolicyCatalogField['paramDefinitions'] {
-  return paramDefinitions.map((param) => ({ ...param }));
-}
-
 const readOnlyInputClass = 'bg-neutral-100 text-black-400';
 
 export function FieldParamDefinitionsSettings({

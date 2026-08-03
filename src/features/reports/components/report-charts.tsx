@@ -58,16 +58,17 @@ export function DonutChart({
   const outerRadius = size / 2 - 6;
   const innerRadius = outerRadius * 0.62;
 
+  const slices: Array<ChartSegment & { path: string }> = [];
   let angle = 0;
-  const slices = segments.map((segment) => {
+  for (const segment of segments) {
     const sweep = (segment.value / total) * 360;
     const path =
       sweep >= 359.99
         ? describeDonutSlice(cx, cy, innerRadius, outerRadius, 0, 359.99)
         : describeDonutSlice(cx, cy, innerRadius, outerRadius, angle, angle + sweep);
+    slices.push({ ...segment, path });
     angle += sweep;
-    return { ...segment, path };
-  });
+  }
 
   return (
     <div className={cn('flex flex-col gap-5 p-5 lg:flex-row lg:items-center', className)}>

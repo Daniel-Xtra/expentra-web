@@ -5,7 +5,7 @@ import { listDepartments } from '@/features/departments/api';
 import { listRoles } from '@/features/roles/api';
 import { fetchUserStatusCounts, listUsers } from '@/features/users/api';
 import { ALL_VALUE } from '@/features/users/constants';
-import { resolveUserListFilter } from '@/features/users/components/UserStatusSummary';
+import { resolveUserListFilter } from '@/features/users/list-filters';
 import { useDebouncedValue } from '@/shared/hooks/use-debounced-value';
 import { queryKeys } from '@/shared/api/query-keys';
 import { DEFAULT_PAGE_SIZE } from '@/shared/lib/pagination';

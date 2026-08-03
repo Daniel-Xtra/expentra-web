@@ -10,18 +10,15 @@ export function SsoCallbackPage() {
   const navigate = useNavigate();
   const redirectTarget = useAuthRedirectTarget();
   const [searchParams] = useSearchParams();
-  const [error, setError] = useState<string | null>(null);
+  const code = searchParams.get('code')?.trim() ?? '';
+  const [error, setError] = useState<string | null>(() =>
+    code ? null : 'SSO sign-in did not return a session code.',
+  );
   const started = useRef(false);
 
   useEffect(() => {
-    if (started.current) return;
+    if (started.current || !code) return;
     started.current = true;
-
-    const code = searchParams.get('code')?.trim();
-    if (!code) {
-      setError('SSO sign-in did not return a session code.');
-      return;
-    }
 
     void (async () => {
       try {
@@ -35,7 +32,7 @@ export function SsoCallbackPage() {
         setError(err instanceof Error ? err.message : 'SSO sign-in failed');
       }
     })();
-  }, [completeSso, navigate, searchParams]);
+  }, [code, completeSso, navigate]);
 
   if (redirectTarget && !error) {
     return <Navigate to={redirectTarget} replace />;

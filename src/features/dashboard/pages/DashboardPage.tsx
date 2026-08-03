@@ -18,14 +18,16 @@ import { queryKeys } from '@/shared/api/query-keys';
 import { CategorySpendOverTimeChart } from '@/features/dashboard/components/CategorySpendOverTimeChart';
 import { DashboardActionRequired } from '@/features/dashboard/components/DashboardActionRequired';
 import { DashboardBudgetCard } from '@/features/dashboard/components/DashboardBudgetCard';
-import {
-  DashboardInsightsRow,
-  hasDashboardInsightsContent,
-} from '@/features/dashboard/components/DashboardInsightsRow';
+import { DashboardInsightsRow } from '@/features/dashboard/components/DashboardInsightsRow';
 import { DashboardPolicyWarnings } from '@/features/dashboard/components/DashboardPolicyWarnings';
 import { DashboardPageToolbar } from '@/features/dashboard/components/DashboardPageToolbar';
 import { DashboardRecentExpenses } from '@/features/dashboard/components/DashboardRecentExpenses';
-import { formatGreetingDate, formatDashboardPeriodCompactLabel, toLocalDateIso } from '@/features/dashboard/dashboard-utils';
+import {
+  formatGreetingDate,
+  formatDashboardPeriodCompactLabel,
+  hasDashboardInsightsContent,
+  toLocalDateIso,
+} from '@/features/dashboard/dashboard-utils';
 import { DataCard } from '@/shared/components/DataCard';
 import { EmptyState } from '@/shared/components/EmptyState';
 import { ErrorState } from '@/shared/components/ErrorState';
