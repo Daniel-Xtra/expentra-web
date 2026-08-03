@@ -51,7 +51,7 @@ export function SignUpPage() {
 
   return (
     <AuthPageLayout
-      footerLink={{ prompt: 'Already have an account?', label: 'Sign in', to: '/login' }}
+      footerLink={{ prompt: 'Already have an account?', label: 'Sign in', to: '/' }}
     >
       <AuthFormShell
         title="Create account"

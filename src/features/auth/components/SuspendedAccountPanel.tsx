@@ -11,7 +11,7 @@ export function SuspendedAccountPanel() {
   const handleBackToSignIn = () => {
     clearAccountSuspended();
     void signOut().finally(() => {
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     });
   };
 

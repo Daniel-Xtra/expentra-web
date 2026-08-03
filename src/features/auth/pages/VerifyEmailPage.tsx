@@ -85,7 +85,7 @@ export function VerifyEmailPage() {
   const handleResend = async () => {
     if (!isAuthenticated) {
       toastError("Sign in to resend a verification email.");
-      navigate("/login", { replace: true });
+      navigate("/", { replace: true });
       return;
     }
 
@@ -111,7 +111,7 @@ export function VerifyEmailPage() {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   if (isUserEmailVerified(user)) {

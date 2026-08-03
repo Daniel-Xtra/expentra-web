@@ -35,9 +35,9 @@ export function ForgotPasswordPage() {
   });
 
   return (
-    <AuthPageLayout footerLink={{ prompt: 'Remember your password?', label: 'Sign in', to: '/login' }}>
+    <AuthPageLayout footerLink={{ prompt: 'Remember your password?', label: 'Sign in', to: '/' }}>
       <AuthFormShell
-        header={<AuthStepHeader step={1} total={3} backTo="/login" />}
+        header={<AuthStepHeader step={1} total={3} backTo="/" />}
         title="Forgot password"
         description="Enter your email and we'll send you a reset code."
         submitLabel="Send reset code"

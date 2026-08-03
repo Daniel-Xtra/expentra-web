@@ -32,14 +32,14 @@ export function ResetPasswordPage() {
     try {
       const message = await confirmPasswordReset(token, values.password);
       toastSuccess(message);
-      navigate('/login', { replace: true });
+      navigate('/', { replace: true });
     } catch (err) {
       handleMutationError(err, { setError: form.setError, fallback: 'Failed to reset password' });
     }
   });
 
   return (
-    <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/login' }}>
+    <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/' }}>
       <AuthFormShell
         header={<AuthStepHeader step={3} total={3} backTo="/verify-otp" />}
         title="Set new password"

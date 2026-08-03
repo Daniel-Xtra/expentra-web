@@ -46,7 +46,7 @@ export function AuthPageLayout({
           variant="lockup"
           theme="light"
           size="lg"
-          href="/login"
+          href="/"
           subtitle="Corporate expense platform"
           className="relative"
         />
@@ -86,7 +86,7 @@ export function AuthPageLayout({
           )}
         >
           <div className="mx-auto lg:hidden">
-            <BrandLogo variant="mark" size="md" href="/login" />
+            <BrandLogo variant="mark" size="md" href="/" />
           </div>
 
           <div className="overflow-hidden rounded-lg border border-black-50 bg-white shadow-[0_8px_40px_-12px_rgba(0,0,0,0.08)]">
@@ -106,7 +106,7 @@ export function AuthPageLayout({
                 </button>
               ) : (
                 <Link
-                  to={footerLink.to ?? '/login'}
+                  to={footerLink.to ?? '/'}
                   className="font-semibold text-primary-500"
                 >
                   {footerLink.label}

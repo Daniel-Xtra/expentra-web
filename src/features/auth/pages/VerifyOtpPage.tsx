@@ -95,7 +95,7 @@ export function VerifyOtpPage() {
 
   if (tokenFromUrl && tokenQuery.isError) {
     return (
-      <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/login' }}>
+      <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/' }}>
         <AuthStatusPanel
           title="Link expired or invalid"
           description="This reset link is no longer valid. Enter a new code or request another reset email."
@@ -117,7 +117,7 @@ export function VerifyOtpPage() {
   const canContinue = isOtpComplete(token);
 
   return (
-    <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/login' }}>
+    <AuthPageLayout footerLink={{ prompt: 'Remembered your password?', label: 'Sign in', to: '/' }}>
       <AuthFormShell
         header={<AuthStepHeader step={2} total={3} backTo="/forgot-password" />}
         title="Enter verification code"

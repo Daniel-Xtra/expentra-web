@@ -35,7 +35,6 @@ import { VerifyEmailPage } from '@/features/auth/pages/VerifyEmailPage';
 import { AppLayout } from '@/shared/components/AppLayout';
 import { CapabilityRoute } from '@/shared/components/CapabilityRoute';
 import { DocumentMetadataLayout } from '@/shared/components/DocumentMetadata';
-import { HomeRedirect } from '@/shared/components/HomeRedirect';
 import { ActiveAccountRoute } from '@/shared/components/ActiveAccountRoute';
 import { EmailVerifiedRoute } from '@/shared/components/EmailVerifiedRoute';
 import { ProtectedRoute } from '@/shared/components/ProtectedRoute';
@@ -63,8 +62,12 @@ export const router = createBrowserRouter([
     errorElement: <RouteErrorBoundary />,
     children: [
       {
-        path: '/login',
+        path: '/',
         element: <LoginPage />,
+      },
+      {
+        path: '/login',
+        element: <Navigate to="/" replace />,
       },
       {
         path: '/auth/sso/callback',
@@ -111,8 +114,6 @@ export const router = createBrowserRouter([
                 element: <AppLayout />,
                 errorElement: <RouteErrorBoundary />,
                 children: [
-                  { index: true, element: <HomeRedirect /> },
-
                   {
                     element: routeGuard('dashboard'),
                     children: [{ path: 'dashboard', element: <DashboardPage /> }],

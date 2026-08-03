@@ -9,6 +9,11 @@ type RouteMetadata = {
 const AUTH_DESCRIPTION = `Sign in to ${SITE_NAME} to manage expense claims and approvals.`;
 
 const ROUTE_METADATA: Record<string, RouteMetadata> = {
+  '/': {
+    title: 'Sign in',
+    description: AUTH_DESCRIPTION,
+    noIndex: true,
+  },
   '/login': {
     title: 'Sign in',
     description: AUTH_DESCRIPTION,
@@ -147,13 +152,6 @@ function matchRouteMetadata(pathname: string): RouteMetadata | null {
     return {
       title: 'Employee detail',
       description: 'Employee profile, work assignment, and expense activity.',
-    };
-  }
-
-  if (pathname === '/') {
-    return {
-      title: SITE_NAME,
-      description: SITE_DESCRIPTION,
     };
   }
 

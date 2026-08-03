@@ -48,7 +48,7 @@ export function SsoCallbackPage() {
           <>
             <p className="text-sm/[19.6px] text-black-400">{error}</p>
             <Link
-              to="/login"
+              to="/"
               className="inline-block text-sm font-semibold text-primary-500 hover:underline"
             >
               Back to sign in
